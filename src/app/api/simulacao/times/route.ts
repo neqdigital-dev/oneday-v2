@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       campeonato_id: camp.id,
       nome_igreja: nome,
       modalidade,
-      diretor_jovem: "Lider Teste " + (i+1),
+      lider_id: (session.user as any).id, diretor_jovem: "Lider Teste " + (i+1),
       token: crypto.randomUUID(),
       pagou: true
     });
@@ -40,4 +40,5 @@ export async function POST(req: NextRequest) {
   await logAction((session.user as any).id, "GERAR_TIMES_TESTE", { modalidade, quantidade: criados });
   return NextResponse.json({ success: true, criados });
 }
+
 
