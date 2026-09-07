@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- ONEDAY CAMPEONATO v2.0 — Schema Supabase (PostgreSQL)
 -- Execute este SQL no Supabase SQL Editor
 -- ============================================================
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT ''lider'' CHECK (role IN (''super_admin'', ''admin'', ''placarista'', ''lider'')),
+  role TEXT NOT NULL DEFAULT 'lider' CHECK (role IN ('super_admin', 'admin', 'placarista', 'lider')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS campeonatos (
   id SERIAL PRIMARY KEY,
   nome TEXT NOT NULL,
   ano INTEGER NOT NULL,
-  status TEXT NOT NULL DEFAULT ''ativo'' CHECK (status IN (''ativo'', ''arquivado'')),
+  status TEXT NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'arquivado')),
   criado_em TIMESTAMPTZ DEFAULT NOW(),
   criado_por_id UUID REFERENCES users(id)
 );
 
 -- Inserir campeonato inicial
-INSERT INTO campeonatos (nome, ano, status) VALUES (''Oneday 2026'', 2026, ''ativo'') ON CONFLICT DO NOTHING;
+INSERT INTO campeonatos (nome, ano, status) VALUES ('Oneday 2026', 2026, 'ativo') ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- TABELA: regioes (configurável por campeonato)
@@ -45,15 +45,15 @@ CREATE TABLE IF NOT EXISTS regioes (
 
 -- Regiões padrão para o campeonato inicial
 INSERT INTO regioes (campeonato_id, nome, descricao)
-SELECT 1, ''Região 1 | Moving'', ''Regional Natan Cappra'' WHERE NOT EXISTS (SELECT 1 FROM regioes WHERE campeonato_id = 1);
+SELECT 1, 'Região 1 | Moving', 'Regional Natan Cappra' WHERE NOT EXISTS (SELECT 1 FROM regioes WHERE campeonato_id = 1);
 INSERT INTO regioes (campeonato_id, nome, descricao) VALUES
-(1, ''Região 2 | I Am'', ''Regional Daniel Martins''),
-(1, ''Região 3 | Chamados'', ''Regional Roberta Pedroso''),
-(1, ''Região 4 | Together'', ''Regional Maycon Lilo''),
-(1, ''Região 5 | Reaviva'', ''Regional Sônia Ribeiro''),
-(1, ''Região 6 | Bethel'', ''Regional Matheus Felipe''),
-(1, ''Região 7 | Tô Ligado'', ''Regional Regis Nogara''),
-(1, ''Região 8 | Forgiven'', ''Regional Jeferson Martins'')
+(1, 'Região 2 | I Am', 'Regional Daniel Martins'),
+(1, 'Região 3 | Chamados', 'Regional Roberta Pedroso'),
+(1, 'Região 4 | Together', 'Regional Maycon Lilo'),
+(1, 'Região 5 | Reaviva', 'Regional Sônia Ribeiro'),
+(1, 'Região 6 | Bethel', 'Regional Matheus Felipe'),
+(1, 'Região 7 | Tô Ligado', 'Regional Regis Nogara'),
+(1, 'Região 8 | Forgiven', 'Regional Jeferson Martins')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS times (
   distrito TEXT,
   regiao TEXT,
   nome_base TEXT,
-  modalidade TEXT NOT NULL CHECK (modalidade IN (''Futebol Masculino'', ''Futebol Feminino'', ''Volei Misto'')),
+  modalidade TEXT NOT NULL CHECK (modalidade IN ('Futebol Masculino', 'Futebol Feminino', 'Volei Misto')),
   token UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
   lider_id UUID REFERENCES users(id),
   imagem_url TEXT,
