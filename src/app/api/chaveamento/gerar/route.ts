@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { logAction } from "@/lib/audit";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -109,3 +110,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ success: true, grupos: grupos.length, jogos: jogoIndex });
 }
+

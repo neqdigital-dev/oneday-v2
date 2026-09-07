@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { logAction } from "@/lib/audit";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,3 +57,4 @@ async function atualizarClassificacao(sb: any, jogo: any) {
   await updateTime(jogo.time_a_id, aWins, isDraw, jogo.gols_time_a || 0, jogo.gols_time_b || 0, jogo.grupo_id, jogo.campeonato_id);
   await updateTime(jogo.time_b_id, !aWins && !isDraw, isDraw, jogo.gols_time_b || 0, jogo.gols_time_a || 0, jogo.grupo_id, jogo.campeonato_id);
 }
+
