@@ -43,7 +43,7 @@ export default function SuperAdminDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        toast.success(Chaveamento gerado! \ grupos formados.);
+        toast.success(`Chaveamento gerado! ${data.grupos} grupos formados.`);
       } else {
         toast.error("Erro ao gerar chaveamento");
       }
@@ -123,3 +123,4 @@ export default function SuperAdminDashboard() {
     </div>
   );
 }
+
