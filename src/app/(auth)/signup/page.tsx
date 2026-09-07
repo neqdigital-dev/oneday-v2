@@ -36,7 +36,7 @@ export default function SignupPage() {
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ width: "100%", maxWidth: "440px" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <img src="/logo.png" alt="OneDay" style={{ height: "60px", marginBottom: "1rem", objectFit: "contain" }} />
+          <img src="/logo.png" alt="OneDay" style={{ height: "60px", marginBottom: "1rem", objectFit: "contain", display: "block", margin: "0 auto 1rem auto" }} />
           <h1 className="heading-lg">Criar conta</h1>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Cadastre seu time no OneDay</p>
         </div>
@@ -72,5 +72,6 @@ export default function SignupPage() {
     </div>
   );
 }
+
 
 
