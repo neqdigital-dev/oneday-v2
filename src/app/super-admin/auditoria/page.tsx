@@ -11,13 +11,7 @@ export default async function AuditoriaPage() {
   const sb = supabaseAdmin();
   const { data: logs, error } = await sb
     .from("logs_auditoria")
-    .select(
-      id,
-      acao,
-      detalhes,
-      criado_em,
-      users ( username )
-    )
+    .select("id, acao, detalhes, criado_em, users ( username )")
     .order("criado_em", { ascending: false })
     .limit(100);
 
@@ -59,3 +53,4 @@ export default async function AuditoriaPage() {
     </div>
   );
 }
+
