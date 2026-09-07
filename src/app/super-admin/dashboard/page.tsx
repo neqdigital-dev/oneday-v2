@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,20 +10,61 @@ export default function SuperAdminDashboard() {
   const [ano, setAno] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
   
-  const [modalidade, setModalidade] = useState("futebol-masc");
+  const [modalidadesOptions, setModalidadesOptions] = useState<any[]>([]);
+  const [novaModalidade, setNovaModalidade] = useState("");
+
+  const [modalidade, setModalidade] = useState("");
   const [numQuadras, setNumQuadras] = useState(2);
   const [horaInicio, setHoraInicio] = useState("08:30");
   
   const [qtdTimes, setQtdTimes] = useState(8);
 
-  const [modalidadeReagenda, setModalidadeReagenda] = useState("futebol-masc");
+  const [modalidadeReagenda, setModalidadeReagenda] = useState("");
   const [numQuadrasReagenda, setNumQuadrasReagenda] = useState(1);
   const [horaReagenda, setHoraReagenda] = useState("10:30");
+
+  async function loadModalidades() {
+    try {
+      const res = await fetch("/api/modalidades");
+      if (res.ok) {
+        const data = await res.json();
+        setModalidadesOptions(data);
+        if (data.length > 0) {
+          if (!modalidade) setModalidade(data[0].nome);
+          if (!modalidadeReagenda) setModalidadeReagenda(data[0].nome);
+        }
+      }
+    } catch(e) {}
+  }
+
+  useEffect(() => {
+    loadModalidades();
+  }, []);
+
+  async function handleAddModalidade() {
+    if (!novaModalidade) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/modalidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: novaModalidade })
+      });
+      if (res.ok) {
+        toast.success("Modalidade adicionada!");
+        setNovaModalidade("");
+        loadModalidades();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao adicionar");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
 
   async function handleCreateChampionship(e: any) {
     e.preventDefault();
     if (!confirm("Atenção! Gerar um novo campeonato arquivará todos os dados do campeonato atual. Você tem certeza?")) return;
-    
     setLoading(true);
     try {
       const res = await fetch("/api/campeonato/novo", {
@@ -43,6 +84,7 @@ export default function SuperAdminDashboard() {
   }
 
   async function handleGenerateBracket() {
+    if (!modalidade) return;
     if (!confirm("Tem certeza que deseja gerar o chaveamento para " + modalidade + "?")) return;
     setLoading(true);
     try {
@@ -142,6 +184,24 @@ export default function SuperAdminDashboard() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+        
+        {/* Card 0: Modalidades */}
+        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>
+          <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#10b981" }}>➕ Gerenciar Modalidades</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
+            Adicione esportes dinamicamente. Eles aparecerão em todas as telas (para Líderes, Placaristas e Simulação).
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">NOME DA MODALIDADE</label>
+              <input type="text" className="input" placeholder="Ex: Vôlei de Dupla Feminino" value={novaModalidade} onChange={e => setNovaModalidade(e.target.value)} />
+            </div>
+            <button onClick={handleAddModalidade} className="btn" style={{ width: "100%", backgroundColor: "#10b981", color: "#fff" }} disabled={loading || !novaModalidade}>
+              {loading ? "Adicionando..." : "✅ Adicionar Modalidade"}
+            </button>
+          </div>
+        </div>
+
         {/* Card 1: Chaveamento */}
         <div className="card card-padded" style={{ display: "flex", flexDirection: "column" }}>
           <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-blue, #0D2644)" }}>⚽ Controle de Chaveamento</h3>
@@ -150,12 +210,10 @@ export default function SuperAdminDashboard() {
             <div className="input-group">
               <label className="input-label">MODALIDADE GERAL</label>
               <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
-                <option value="futebol-masc">Futebol Masculino</option>
-                <option value="futebol-fem">Futebol Feminino</option>
-                <option value="volei-misto-6">Vôlei Sexteto Misto</option>
-                <option value="volei-masc-4">Vôlei Quarteto Masculino</option>
-                <option value="volei-fem-4">Vôlei Quarteto Feminino</option>
-                <option value="ping-pong">Ping-Pong</option>
+                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                {modalidadesOptions.map(m => (
+                  <option key={m.id} value={m.nome}>{m.nome}</option>
+                ))}
               </select>
             </div>
 
@@ -170,10 +228,10 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <button onClick={handleGenerateBracket} className="btn btn-primary" disabled={loading} style={{ width: "100%", marginTop: "auto" }}>
+            <button onClick={handleGenerateBracket} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", marginTop: "auto" }}>
               {loading ? "Gerando..." : "⚽ Gerar Chaveamento Inicial"}
             </button>
-            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading} style={{ width: "100%" }}>
+            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%" }}>
               🗑️ Limpar Chaveamento
             </button>
           </div>
@@ -190,12 +248,10 @@ export default function SuperAdminDashboard() {
             <div className="input-group">
               <label className="input-label">MODALIDADE GERAL</label>
               <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
-                <option value="futebol-masc">Futebol Masculino</option>
-                <option value="futebol-fem">Futebol Feminino</option>
-                <option value="volei-misto-6">Vôlei Sexteto Misto</option>
-                <option value="volei-masc-4">Vôlei Quarteto Masculino</option>
-                <option value="volei-fem-4">Vôlei Quarteto Feminino</option>
-                <option value="ping-pong">Ping-Pong</option>
+                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                {modalidadesOptions.map(m => (
+                  <option key={m.id} value={m.nome}>{m.nome}</option>
+                ))}
               </select>
             </div>
 
@@ -210,7 +266,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <button onClick={handleReagendar} className="btn" style={{ width: "100%", marginTop: "auto", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading}>
+            <button onClick={handleReagendar} className="btn" style={{ width: "100%", marginTop: "auto", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
               {loading ? "Processando..." : "🔄 Reagendar Pendentes"}
             </button>
           </div>
@@ -236,10 +292,10 @@ export default function SuperAdminDashboard() {
               </select>
             </div>
 
-            <button onClick={handleGerarTimes} className="btn btn-success" disabled={loading} style={{ width: "100%" }}>
+            <button onClick={handleGerarTimes} className="btn btn-success" disabled={loading || !modalidade} style={{ width: "100%" }}>
               1. Criar {qtdTimes} times falsos
             </button>
-            <button onClick={handleSimularPlacares} className="btn btn-warning" disabled={loading} style={{ width: "100%", color: "#000" }}>
+            <button onClick={handleSimularPlacares} className="btn btn-warning" disabled={loading || !modalidade} style={{ width: "100%", color: "#000" }}>
               3. Simular Resultados
             </button>
           </div>

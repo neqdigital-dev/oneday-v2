@@ -15,11 +15,13 @@ export default function CadastroTimePage() {
   const [comproFile, setComproFile] = useState<File | null>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [regioes, setRegioes] = useState<any[]>([]);
+  const [modalidades, setModalidades] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/admin/regioes").then(r => r.json()).then(setRegioes).catch(() => {});
+    fetch('/api/admin/regioes').then(r => r.json()).then(setRegioes).catch(() => {});
+    fetch('/api/modalidades').then(r => r.json()).then(setModalidades).catch(() => {});
   }, []);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -159,3 +161,4 @@ export default function CadastroTimePage() {
     </div>
   );
 }
+
