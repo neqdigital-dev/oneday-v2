@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
     const nome = nomes[i % nomes.length] + (i >= nomes.length ? " " + (Math.floor(i/nomes.length)+1) : "") + " (Teste)";
     const { error } = await sb.from("times").insert({
       campeonato_id: camp.id,
-      nome,
+      nome_igreja: nome,
       modalidade,
-      responsavel: "Lider Teste " + (i+1),
-      telefone: "21999990" + String(i).padStart(3, "0"),
+      diretor_jovem: "Lider Teste " + (i+1),
+      token: crypto.randomUUID(),
       pagou: true
     });
     if (!error) criados++;
@@ -40,3 +40,4 @@ export async function POST(req: NextRequest) {
   await logAction((session.user as any).id, "GERAR_TIMES_TESTE", { modalidade, quantidade: criados });
   return NextResponse.json({ success: true, criados });
 }
+
