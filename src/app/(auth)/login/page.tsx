@@ -32,7 +32,7 @@ export default function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ width: "100%", maxWidth: "420px" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>⚽</div>
+          <img src="/logo.png" alt="OneDay" style={{ height: "80px", marginBottom: "1rem", objectFit: "contain" }} />
           <h1 className="heading-lg">Bem-vindo de volta</h1>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Entre na sua conta OneDay</p>
         </div>
@@ -84,4 +84,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 
