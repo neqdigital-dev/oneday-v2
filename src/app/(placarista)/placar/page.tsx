@@ -11,27 +11,43 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
   const [sB, setSetsB] = useState(jogo.sets_vencidos_b ?? 0);
   const [loading, setLoading] = useState(false);
 
-  async function handleSave(finalizar: boolean) {
+  async function handleSave(finalizar: boolean, woVencedorId: string | null = null) {
+    if (woVencedorId && !confirm("Tem certeza que deseja declarar W.O.? Isso não pode ser desfeito.")) return;
+    
     setLoading(true);
     try {
+      const payload: any = {
+        modalidade: jogo.modalidade,
+        time_a_id: jogo.time_a_id,
+        time_b_id: jogo.time_b_id,
+        gols_time_a: isFut ? gA : null,
+        gols_time_b: isFut ? gB : null,
+        sets_vencidos_a: !isFut ? sA : null,
+        sets_vencidos_b: !isFut ? sB : null,
+        finalizado: finalizar,
+        fase: jogo.fase,
+        grupo_id: jogo.grupo_id,
+        vencedor_wo_id: woVencedorId
+      };
+
+      if (woVencedorId) {
+        payload.finalizado = true;
+        if (isFut) {
+          payload.gols_time_a = woVencedorId === jogo.time_a_id ? 3 : 0;
+          payload.gols_time_b = woVencedorId === jogo.time_b_id ? 3 : 0;
+        } else {
+          payload.sets_vencidos_a = woVencedorId === jogo.time_a_id ? 2 : 0;
+          payload.sets_vencidos_b = woVencedorId === jogo.time_b_id ? 2 : 0;
+        }
+      }
+
       const res = await fetch(`/api/jogos/${jogo.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          modalidade: jogo.modalidade,
-          time_a_id: jogo.time_a_id,
-          time_b_id: jogo.time_b_id,
-          gols_time_a: isFut ? gA : null,
-          gols_time_b: isFut ? gB : null,
-          sets_vencidos_a: !isFut ? sA : null,
-          sets_vencidos_b: !isFut ? sB : null,
-          finalizado: finalizar,
-          fase: jogo.fase,
-          grupo_id: jogo.grupo_id,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) { toast.error("Erro ao salvar."); return; }
-      toast.success(finalizar ? "Jogo finalizado!" : "Placar salvo!");
+      toast.success(finalizar || woVencedorId ? "Jogo finalizado!" : "Placar salvo!");
       onSaved();
     } finally {
       setLoading(false);
@@ -43,10 +59,12 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
 
   return (
     <div className="card card-padded animate-fade-in" style={{ marginBottom: "1rem" }}>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-        <span className="badge badge-blue" style={{ fontSize: "0.7rem" }}>{jogo.modalidade}</span>
-        <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>{jogo.fase}</span>
-        {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📍 {jogo.local}</span>}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <span className="badge badge-blue" style={{ fontSize: "0.7rem" }}>{jogo.modalidade}</span>
+          <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>{jogo.fase}</span>
+          {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📍 {jogo.local}</span>}
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
@@ -58,6 +76,9 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
           ) : (
             <input type="number" min="0" max="3" value={sA} onChange={e => setSetsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           )}
+          <button className="btn btn-outline btn-sm" style={{ marginTop: "0.5rem", width: "100%", fontSize: "0.7rem" }} onClick={() => handleSave(true, jogo.time_b_id)} disabled={loading}>
+            W.O. (Não Veio)
+          </button>
         </div>
 
         <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "1.5rem", fontWeight: "300" }}>×</div>
@@ -70,6 +91,9 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
           ) : (
             <input type="number" min="0" max="3" value={sB} onChange={e => setSetsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           )}
+          <button className="btn btn-outline btn-sm" style={{ marginTop: "0.5rem", width: "100%", fontSize: "0.7rem" }} onClick={() => handleSave(true, jogo.time_a_id)} disabled={loading}>
+            W.O. (Não Veio)
+          </button>
         </div>
       </div>
 

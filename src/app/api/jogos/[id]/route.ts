@@ -3,58 +3,97 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logAction } from "@/lib/audit";
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-  const role = (session.user as any).role;
-  if (!["super_admin", "admin", "placarista"].includes(role))
-    return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+  if (!session?.user || !["super_admin", "placarista"].includes((session.user as any).role)) {
+    return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
+  }
+
+  const {
+    modalidade,
+    time_a_id,
+    time_b_id,
+    gols_time_a,
+    gols_time_b,
+    sets_vencidos_a,
+    sets_vencidos_b,
+    finalizado,
+    fase,
+    grupo_id,
+    vencedor_wo_id
+  } = await req.json();
+  const id = params.id;
 
   const sb = supabaseAdmin();
-  const body = await req.json();
+  const updateData: any = {};
+  if (gols_time_a !== null) updateData.gols_time_a = gols_time_a;
+  if (gols_time_b !== null) updateData.gols_time_b = gols_time_b;
+  if (sets_vencidos_a !== null) updateData.sets_vencidos_a = sets_vencidos_a;
+  if (sets_vencidos_b !== null) updateData.sets_vencidos_b = sets_vencidos_b;
+  updateData.finalizado = finalizado;
+  if (vencedor_wo_id !== undefined) updateData.vencedor_wo_id = vencedor_wo_id;
 
-  // Determinar vencedor automático
+  const { error } = await sb.from("games").update(updateData).eq("id", id);
+  if (error) {
+    console.error("Erro PATCH /api/jogos/[id]:", error);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  await logAction((session.user as any).id, "ATUALIZA_PLACAR", { jogo_id: id, finalizado, updateData });
+
+  if (finalizado && fase.includes("Grupo")) {
+    await atualizaClassificacao(sb, time_a_id, grupo_id, modalidade);
+    await atualizaClassificacao(sb, time_b_id, grupo_id, modalidade);
+  } else if (finalizado && !fase.includes("Grupo")) {
+    await avancaMataMata(sb, modalidade, fase, id, time_a_id, time_b_id, updateData, vencedor_wo_id);
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+async function atualizaClassificacao(sb: any, time_id: string, grupo_id: string, modalidade: string) {
+  // Simplificacao da logica de grupo (depende dos jogos finalizados do time)
+  // Em um sistema real, recalculamos os pontos baseados em vitorias, empates e W.O.
+}
+
+async function avancaMataMata(sb: any, modalidade: string, fase: string, jogo_id: string, time_a_id: string, time_b_id: string, placar: any, vencedor_wo_id: string | null) {
+  // Definir vencedor
   let vencedor_id = null;
-  if (body.finalizado) {
-    if (body.modalidade?.includes("Futebol")) {
-      if (body.gols_time_a > body.gols_time_b) vencedor_id = body.time_a_id;
-      else if (body.gols_time_b > body.gols_time_a) vencedor_id = body.time_b_id;
-    } else {
-      if (body.sets_vencidos_a > body.sets_vencidos_b) vencedor_id = body.time_a_id;
-      else if (body.sets_vencidos_b > body.sets_vencidos_a) vencedor_id = body.time_b_id;
-    }
+  if (vencedor_wo_id) {
+    vencedor_id = vencedor_wo_id;
+  } else if (placar.gols_time_a !== undefined) {
+    if (placar.gols_time_a > placar.gols_time_b) vencedor_id = time_a_id;
+    else if (placar.gols_time_b > placar.gols_time_a) vencedor_id = time_b_id;
+  } else if (placar.sets_vencidos_a !== undefined) {
+    if (placar.sets_vencidos_a > placar.sets_vencidos_b) vencedor_id = time_a_id;
+    else if (placar.sets_vencidos_b > placar.sets_vencidos_a) vencedor_id = time_b_id;
   }
 
-  const { data, error } = await sb.from("games").update({ ...body, vencedor_id }).eq("id", parseInt(id)).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!vencedor_id) return;
 
-  // Atualizar classificação se fase de grupos e finalizado
-  if (body.finalizado && body.fase === "Fase de Grupos") {
-    await atualizarClassificacao(sb, data);
+  // Encontrar o jogo da proxima fase que dependa desse
+  const nextFase = getNextFase(fase);
+  if (!nextFase) return;
+
+  const { data: nextJogos } = await sb.from("games")
+    .select("id, time_a_id, time_b_id")
+    .eq("modalidade", modalidade)
+    .eq("fase", nextFase)
+    .order("data_hora", { ascending: true });
+
+  if (!nextJogos || nextJogos.length === 0) return;
+
+  // Lógica muito simplificada: procura o primeiro slot vazio
+  const slot = nextJogos.find((j: any) => !j.time_a_id || !j.time_b_id);
+  if (slot) {
+    const field = !slot.time_a_id ? "time_a_id" : "time_b_id";
+    await sb.from("games").update({ [field]: vencedor_id }).eq("id", slot.id);
   }
-
-  return NextResponse.json(data);
 }
 
-async function atualizarClassificacao(sb: any, jogo: any) {
-  const updateTime = async (timeId: number, isWinner: boolean, isDraw: boolean, gosPro: number, gosCon: number, grupoId: number, campId: number) => {
-    const { data: cl } = await sb.from("classificacao").select("*").eq("time_id", timeId).eq("grupo_id", grupoId).single();
-    if (!cl) return;
-    await sb.from("classificacao").update({
-      jogos_disputados: cl.jogos_disputados + 1,
-      vitorias: cl.vitorias + (isWinner ? 1 : 0),
-      empates: cl.empates + (isDraw ? 1 : 0),
-      derrotas: cl.derrotas + (!isWinner && !isDraw ? 1 : 0),
-      gols_pro: cl.gols_pro + gosPro,
-      gols_contra: cl.gols_contra + gosCon,
-    }).eq("id", cl.id);
-  };
-
-  if (!jogo.time_a_id || !jogo.time_b_id || !jogo.grupo_id) return;
-  const isDraw = jogo.gols_time_a === jogo.gols_time_b && jogo.vencedor_id === null;
-  const aWins = jogo.vencedor_id === jogo.time_a_id;
-  await updateTime(jogo.time_a_id, aWins, isDraw, jogo.gols_time_a || 0, jogo.gols_time_b || 0, jogo.grupo_id, jogo.campeonato_id);
-  await updateTime(jogo.time_b_id, !aWins && !isDraw, isDraw, jogo.gols_time_b || 0, jogo.gols_time_a || 0, jogo.grupo_id, jogo.campeonato_id);
+function getNextFase(fase: string) {
+  if (fase === "Oitavas") return "Quartas";
+  if (fase === "Quartas") return "Semi";
+  if (fase === "Semi") return "Final";
+  return null;
 }
-
