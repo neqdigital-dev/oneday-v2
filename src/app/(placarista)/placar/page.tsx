@@ -30,40 +30,30 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
         vencedor_wo_id: woVencedorId
       };
 
-      if (woVencedorId) {
-        payload.finalizado = true;
-        if (isFut) {
-          payload.gols_time_a = woVencedorId === jogo.time_a_id ? 3 : 0;
-          payload.gols_time_b = woVencedorId === jogo.time_b_id ? 3 : 0;
-        } else {
-          payload.sets_vencidos_a = woVencedorId === jogo.time_a_id ? 2 : 0;
-          payload.sets_vencidos_b = woVencedorId === jogo.time_b_id ? 2 : 0;
-        }
-      }
-
       const res = await fetch(`/api/jogos/${jogo.id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-      if (!res.ok) { toast.error("Erro ao salvar."); return; }
-      toast.success(finalizar || woVencedorId ? "Jogo finalizado!" : "Placar salvo!");
-      onSaved();
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) {
+        toast.success(finalizar ? "Jogo finalizado!" : "Placar parcial salvo!");
+        if (finalizar) onSaved();
+      } else toast.error("Erro ao salvar");
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
   }
 
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "Time A";
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "Time B";
 
   return (
-    <div className="card card-padded animate-fade-in" style={{ marginBottom: "1rem" }}>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <span className="badge badge-blue" style={{ fontSize: "0.7rem" }}>{jogo.modalidade}</span>
-          <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>{jogo.fase}</span>
-          {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📍 {jogo.local}</span>}
+    <div className="card card-padded">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+        <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", fontWeight: "500" }}>
+          <b>{jogo.modalidade}</b> | #Jogo {jogo.ordem_na_fase || "?"} | {jogo.fase}
+        </div>
+        <div>
+          {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📌 {jogo.local}</span>}
         </div>
       </div>
 
@@ -100,7 +90,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
       <div style={{ display: "flex", gap: "0.75rem" }}>
         <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => handleSave(false)} disabled={loading}>Salvar parcial</button>
         <button id={`finalizar-${jogo.id}`} className="btn btn-success" style={{ flex: 2 }} onClick={() => handleSave(true)} disabled={loading}>
-          {loading ? "Salvando..." : "✓ Finalizar jogo"}
+          {loading ? "Salvando..." : "– Finalizar jogo"}
         </button>
       </div>
     </div>
@@ -110,18 +100,21 @@ function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
 export default function PlacarPage() {
   const [jogos, setJogos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Todos");
+  const modalidades = ["Todos", "Futebol Masculino", "Futebol Feminino", "Vôlei Masculino", "Vôlei Feminino", "Tênis de Mesa"];
 
   async function loadJogos() {
     setLoading(true);
     try {
       const res = await fetch("/api/jogos?finalizado=false");
       const data = await res.json();
-      setJogos(Array.isArray(data) ? data : []);
+      setJogos(Array.isArray(data) ? data.sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) : []);
     } finally {
       setLoading(false);
     }
   }
-
+	 
+  
   useEffect(() => { loadJogos(); }, []);
 
   return (
@@ -134,21 +127,39 @@ export default function PlacarPage() {
               <h1 className="heading-lg">🎯 Inserir Placar</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{jogos.length} jogos pendentes</p>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={loadJogos}>🔄 Atualizar</button>
+            <button className="btn btn-ghost btn-sm" onClick={loadJogos}>🔑 Atualizar</button>
+          </div>
+
+          {1/* Tabs */}
+          <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "1rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+            {modalidades.map(mod => (
+              <button
+                key={mod}
+                onClick={() => setActiveTab(mod)}
+                className={`btn btn-sm ${activeTab === mod ? "btn-primary" : "btn-ghost"}`}
+                style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                {mod}
+              </button>
+            ))}
           </div>
 
           {loading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: "200px" }} />)}
             </div>
-          ) : jogos.length === 0 ? (
+          ) : jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length === 0 ? (
             <div className="card card-padded" style={{ textAlign: "center", padding: "3rem" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✅</div>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✄</div>
               <h3 className="heading-sm">Todos os jogos finalizados!</h3>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Não há jogos pendentes no momento.</p>
             </div>
           ) : (
-            jogos.map(jogo => <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadJogos} />)
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).map(jogo => (
+                <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadJogos} />
+              ))}
+            </div>
           )}
         </div>
       </main>
