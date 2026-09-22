@@ -180,7 +180,10 @@ export default function SuperAdminDashboard() {
           <h2 className="heading-lg">Painel do Super Admin</h2>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o campeonato.</p>
         </div>
-        <Link href="/super-admin/auditoria" className="btn btn-outline" style={{ whiteSpace: "nowrap" }}>📋 Log de Auditoria</Link>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Link href="/super-admin/times" className="btn btn-primary" style={{ whiteSpace: "nowrap" }}>👥 Ver Times Cadastrados</Link>
+          <Link href="/super-admin/auditoria" className="btn btn-outline" style={{ whiteSpace: "nowrap" }}>📋 Log de Auditoria</Link>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
