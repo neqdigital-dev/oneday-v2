@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import AdminActions from "./AdminActions";
+import TabsFilter from './TabsFilter';
+
 
 async function getData() {
   const sb = supabaseAdmin();
@@ -87,45 +89,7 @@ export default async function PainelAdminPage() {
           <div className="section-header" style={{ marginTop: "2rem", marginBottom: "1rem" }}>
             <h2 className="heading-sm">Times Cadastrados</h2>
           </div>
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr><th>Time</th><th>Modalidade</th><th>Jogadores</th><th>Pagamento</th><th>Cadastros</th><th>Ações</th></tr>
-              </thead>
-              <tbody>
-                {data.times.map((time: any) => (
-                  <tr key={time.id}>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        {time.imagem_url && <img src={time.imagem_url} alt="" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} />}
-                        <div>
-                          <div style={{ fontWeight: "600" }}>{time.nome_base || time.nome_igreja}</div>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{time.nome_igreja}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`badge ${time.modalidade === "Futebol Masculino" ? "badge-blue" : time.modalidade === "Futebol Feminino" ? "badge-pink" : "badge-orange"}`} style={{ fontSize: "0.7rem" }}>{time.modalidade}</span>
-                    </td>
-                    <td>{time.jogadores?.length || 0}</td>
-                    <td>
-                      <span className={`badge ${time.pagou ? "badge-green" : "badge-red"}`} style={{ fontSize: "0.7rem" }}>
-                        {time.pagou ? "✓ Pago" : "⏳ Pendente"}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${time.cadastros_encerrados ? "badge-gray" : "badge-green"}`} style={{ fontSize: "0.7rem" }}>
-                        {time.cadastros_encerrados ? "Encerrado" : "Aberto"}
-                      </span>
-                    </td>
-                    <td>
-                      <Link href={`/time/${time.id}`} className="btn btn-ghost btn-sm">Ver</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TabsFilter times={data.times} />
         </div>
       </main>
     </div>
