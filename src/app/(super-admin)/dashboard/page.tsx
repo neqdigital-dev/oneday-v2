@@ -90,7 +90,7 @@ function NovoCampeonatoForm() {
 
 function GerarChaveamentoForm() {
   const [modalidade, setModalidade] = useState("Futebol Masculino");
-  const [numQuadras, setNumQuadras] = useState(3);
+  
   const [horaInicio, setHoraInicio] = useState("08:30");
   const [loading, setLoading] = useState("");
   const router = useRouter();
@@ -102,7 +102,7 @@ function GerarChaveamentoForm() {
       const res = await fetch("/api/chaveamento/gerar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modalidade, num_quadras: numQuadras, hora_inicio: horaInicio }),
+        body: JSON.stringify({ modalidade, hora_inicio: horaInicio }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Erro ao gerar chaveamento."); return; }
@@ -129,7 +129,7 @@ function GerarChaveamentoForm() {
   return (
     <div className="card card-padded-lg animate-fade-in" style={{ marginBottom: "1.5rem" }}>
       <h2 className="heading-sm" style={{ marginBottom: "1.5rem" }}>🎯 Gerar Chaveamento</h2>
-      <div className="form-grid form-grid-3" style={{ marginBottom: "1.25rem" }}>
+      <div className="form-grid form-grid-2" style={{ marginBottom: "1.25rem" }}>
         <div className="input-group">
           <label className="input-label">Modalidade</label>
           <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
@@ -138,10 +138,7 @@ function GerarChaveamentoForm() {
             <option>Volei Misto</option>
           </select>
         </div>
-        <div className="input-group">
-          <label className="input-label">Nº de Quadras</label>
-          <input type="number" className="input" min="1" max="10" value={numQuadras} onChange={e => setNumQuadras(parseInt(e.target.value))} />
-        </div>
+
         <div className="input-group">
           <label className="input-label">Hora de Início</label>
           <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
@@ -152,6 +149,7 @@ function GerarChaveamentoForm() {
           {loading === "gerar" ? "Gerando..." : "⚡ Gerar chaveamento automático"}
         </button>
         <Link href="/chaveamento" className="btn btn-ghost btn-sm">Ver chaveamento →</Link>
+        <Link href={`/imprimir-sumulas/${encodeURIComponent(modalidade)}`} className="btn btn-ghost btn-sm no-print">🖨️ Imprimir Súmulas</Link>
         <button id="btn-limpar-chaveamento" className="btn btn-danger btn-sm" style={{ marginLeft: "auto" }} onClick={handleLimpar} disabled={!!loading}>
           {loading === "limpar" ? "..." : "🗑️ Limpar tudo"}
         </button>

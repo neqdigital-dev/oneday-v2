@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { supabaseAdmin } from "@/lib/supabase";
 import { formatDateTime } from "@/lib/utils";
+import PrintButton from "@/components/PrintButton";
 
 async function getData() {
   const sb = supabaseAdmin();
@@ -82,10 +83,18 @@ export default async function ChaveamentoPage() {
             </div>
           ) : (
             <>
-              <div className="section-header" style={{ marginBottom: "2rem" }}>
+              <style>{`
+                @media print {
+                  .no-print, nav, footer { display: none !important; }
+                  body { background: white; color: black; }
+                  .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+                }
+              `}</style>
+              <div className="section-header" style={{ marginBottom: "2rem", display: "flex", alignItems: "center" }}>
                 <h1 className="heading-lg">
                   Chaveamento — <span className="text-gradient">{data.camp.nome}</span>
                 </h1>
+                <PrintButton />
               </div>
 
               {modalidades.map((mod: any) => (

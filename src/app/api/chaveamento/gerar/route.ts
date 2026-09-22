@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (role !== "super_admin") return NextResponse.json({ error: "Apenas Super Admin." }, { status: 403 });
 
   const sb = supabaseAdmin();
-  const { modalidade, num_quadras = 2, hora_inicio = "08:30" } = await req.json();
+  const { modalidade, hora_inicio = "08:30" } = await req.json();
 
   const { data: camp } = await sb.from("campeonatos").select("id").eq("status", "ativo").single();
   if (!camp) return NextResponse.json({ error: "Nenhum campeonato ativo." }, { status: 400 });
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // NOVO ALGORITMO DE AGENDAMENTO (DESCANSO)
+  // NOVO ALGORITMO DE AGENDAMENTO (DESCANSO) - Sequência Única
   let todosConfrontos: any[] = [];
   for (const grupo of grupos) {
     const { data: timesDoGrupo } = await sb.from("times").select("id").eq("grupo_id", grupo.id);
@@ -86,62 +86,34 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  todosConfrontos = shuffle(todosConfrontos);
   const scheduledMatches: any[] = [];
-  const teamLastPlayedRound: Record<string, number> = {};
-  let currentRound = 0;
+  const ultimoJogo = {}; // { time_id: ultima_posicao }
 
   while (todosConfrontos.length > 0) {
-    let matchesForRound = 0;
-    const teamsPlayingInThisRound = new Set<string>();
-    const matchesToScheduleThisRound: any[] = [];
-    const indicesToRemove: number[] = [];
-
-    // Passada 1: Times 100% descansados (nao jogaram na rodada anterior)
-    for (let i = 0; i < todosConfrontos.length; i++) {
-      if (matchesForRound >= num_quadras) break;
-      const match = todosConfrontos[i];
-      if (teamsPlayingInThisRound.has(match.ta) || teamsPlayingInThisRound.has(match.tb)) continue;
+    let melhorJogo = null;
+    let melhorDistancia = -1;
+    let melhorIdx = -1;
+    
+    const currentPos = scheduledMatches.length;
+    
+    for (let idx = 0; idx < todosConfrontos.length; idx++) {
+      const match = todosConfrontos[idx];
+      const distTa = currentPos - (ultimoJogo[match.ta] !== undefined ? ultimoJogo[match.ta] : -999);
+      const distTb = currentPos - (ultimoJogo[match.tb] !== undefined ? ultimoJogo[match.tb] : -999);
       
-      const taLast = teamLastPlayedRound[match.ta] ?? -2;
-      const tbLast = teamLastPlayedRound[match.tb] ?? -2;
+      const minDist = Math.min(distTa, distTb);
       
-      if (currentRound - taLast > 1 && currentRound - tbLast > 1) {
-        matchesToScheduleThisRound.push(match);
-        indicesToRemove.push(i);
-        teamsPlayingInThisRound.add(match.ta);
-        teamsPlayingInThisRound.add(match.tb);
-        matchesForRound++;
+      if (minDist > melhorDistancia) {
+        melhorDistancia = minDist;
+        melhorJogo = match;
+        melhorIdx = idx;
       }
     }
-
-    // Passada 2: Se sobrar quadra livre, aceita quem jogou na anterior (mas não joga ao mesmo tempo)
-    if (matchesForRound < num_quadras) {
-      for (let i = 0; i < todosConfrontos.length; i++) {
-        if (matchesForRound >= num_quadras) break;
-        if (indicesToRemove.includes(i)) continue;
-
-        const match = todosConfrontos[i];
-        if (teamsPlayingInThisRound.has(match.ta) || teamsPlayingInThisRound.has(match.tb)) continue;
-        
-        matchesToScheduleThisRound.push(match);
-        indicesToRemove.push(i);
-        teamsPlayingInThisRound.add(match.ta);
-        teamsPlayingInThisRound.add(match.tb);
-        matchesForRound++;
-      }
-    }
-
-    // Remove do array principal
-    indicesToRemove.sort((a,b) => b - a).forEach(idx => todosConfrontos.splice(idx, 1));
-
-    let quadra = 1;
-    for (const m of matchesToScheduleThisRound) {
-      teamLastPlayedRound[m.ta] = currentRound;
-      teamLastPlayedRound[m.tb] = currentRound;
-      scheduledMatches.push({ ...m, quadra: quadra++, rodada: currentRound });
-    }
-    currentRound++;
+    
+    scheduledMatches.push(melhorJogo);
+    ultimoJogo[melhorJogo.ta] = currentPos;
+    ultimoJogo[melhorJogo.tb] = currentPos;
+    todosConfrontos.splice(melhorIdx, 1);
   }
 
   // Inserir no Banco de Dados
@@ -152,8 +124,8 @@ export async function POST(req: NextRequest) {
 
   for (let i = 0; i < scheduledMatches.length; i++) {
     const m = scheduledMatches[i];
-    // 17 minutos de media por jogo (intervalo rodadas)
-    const minutosOffset = m.rodada * 17;
+    // 20 minutos de media por jogo (sequência única)
+    const minutosOffset = i * 20;
     const dataHora = new Date(baseDate.getTime() + minutosOffset * 60000);
     
     await sb.from("games").insert({
@@ -162,7 +134,7 @@ export async function POST(req: NextRequest) {
       fase: "Fase de Grupos",
       time_a_id: m.ta,
       time_b_id: m.tb,
-      local: "Quadra " + m.quadra,
+      local: "Sequência Única",
       data_hora: dataHora.toISOString(),
       finalizado: false,
       ordem_na_fase: i + 1,
