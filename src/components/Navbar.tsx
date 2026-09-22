@@ -16,7 +16,7 @@ export default function Navbar() {
         <div className="navbar-links">
           {role === "super_admin" && <Link href="/super-admin/dashboard" className="navbar-link">Super Admin</Link>}
                     {(role === "super_admin" || role === "admin" || role === "placarista") && <Link href="/placar" className="navbar-link">Placar</Link>}
-          {(role === "super_admin" || role === "admin" || role === "lider") && <Link href="/meus-times" className="navbar-link">Meus Times</Link>}
+          {role === "super_admin" ? <Link href="/super-admin/times" className="navbar-link">Times</Link> : (role === "admin" || role === "lider") ? <Link href="/meus-times" className="navbar-link">Meus Times</Link> : null}
           <Link href="/chaveamento" className="navbar-link">Chaveamento</Link>
           <Link href="/painel" className="navbar-link">Grupos</Link>
           
