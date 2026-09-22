@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   }
 
   const scheduledMatches: any[] = [];
-  const ultimoJogo = {}; // { time_id: ultima_posicao }
+  const ultimoJogo: Record<string, number> = {}; // { time_id: ultima_posicao }
 
   while (todosConfrontos.length > 0) {
     let melhorJogo = null;
