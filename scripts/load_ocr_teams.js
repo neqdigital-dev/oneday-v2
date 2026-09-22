@@ -136,9 +136,9 @@ async function main() {
                 distrito: district,
                 modalidade: app_mod,
                 pagou: true,
-                admin_id: superAdminId,
+                
                 link_pagamento: "https://eventodaigreja.com.br/teste_ocr",
-                logo_url: ""
+                
             });
             
             if (error) {
