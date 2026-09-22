@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+﻿import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { supabaseAdmin } from "@/lib/supabase";
@@ -76,7 +76,7 @@ export default async function PainelAdminPage() {
             </div>
             {Object.entries(porModalidade).map(([mod, count]: any) => (
               <div key={mod} className="stat-card">
-                <div className="stat-label">{mod === "Futebol Masculino" ? "Fut. Masc." : mod === "Futebol Feminino" ? "Fut. Fem." : "Vôlei"}</div>
+                <div className="stat-label">{mod === "Futebol Masculino" ? "Fut. Masc." : mod === "Futebol Feminino" ? "Fut. Fem." : mod === "Vôlei Masculino" ? "Vôlei Masc." : mod === "Vôlei Feminino" ? "Vôlei Fem." : mod === "Tênis de Mesa" ? "Tênis" : mod}</div>
                 <div className="stat-value">{count}</div>
                 <div className="stat-sub">times</div>
               </div>
@@ -95,3 +95,4 @@ export default async function PainelAdminPage() {
     </div>
   );
 }
+
