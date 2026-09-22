@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logAction } from "@/lib/audit";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user || !["super_admin", "placarista"].includes((session.user as any).role)) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     grupo_id,
     vencedor_wo_id
   } = await req.json();
-  const id = params.id;
+  const { id } = await params;
 
   const sb = supabaseAdmin();
   const updateData: any = {};
