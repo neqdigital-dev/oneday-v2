@@ -137,8 +137,7 @@ export async function POST(req: NextRequest) {
       local: "Sequência Única",
       data_hora: dataHora.toISOString(),
       finalizado: false,
-      ordem_na_fase: i + 1,
-      grupo_id: m.grupo_id,
+      ordem_na_fase: i + 1
     });
     totalSalvos++;
   }
