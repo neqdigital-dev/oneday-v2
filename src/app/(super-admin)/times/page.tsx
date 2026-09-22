@@ -23,7 +23,7 @@ export default async function PainelAdminPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const role = (session.user as any).role;
-  if (!["super_admin", "admin"].includes(role)) redirect("/acesso-negado");
+  if (role !== "super_admin") redirect("/acesso-negado");
 
   const data = await getData();
 
@@ -51,11 +51,11 @@ export default async function PainelAdminPage() {
         <div className="container">
           <div className="section-header" style={{ marginBottom: "2rem" }}>
             <div>
-              <h1 className="heading-lg">Painel Admin</h1>
+              <h1 className="heading-lg">Times Cadastrados</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{data.camp.nome}</p>
             </div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {role === "super_admin" && <Link href="/super-admin/dashboard" className="btn btn-ghost btn-sm">⚙️ Super Admin</Link>}
+              <Link href="/super-admin/dashboard" className="btn btn-ghost btn-sm">⬅️ Voltar ao Dashboard</Link>
               <a href="/api/admin/relatorio" className="btn btn-ghost btn-sm" download>📊 Excel</a>
               <Link href="/placar" className="btn btn-primary btn-sm">🎯 Placar</Link>
             </div>

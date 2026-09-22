@@ -177,7 +177,7 @@ export default function SuperAdminDashboard() {
               </h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>Controle total do campeonato</p>
             </div>
-            <Link href="/admin/painel-admin" className="btn btn-ghost btn-sm">Painel Admin →</Link>
+            <Link href="/super-admin/times" className="btn btn-ghost btn-sm">👥 Ver Times Cadastrados →</Link>
           </div>
 
           <GerarChaveamentoForm />
