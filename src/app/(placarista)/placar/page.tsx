@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
-function PlacarForm({ jogo, onSaved }: { jogo: any; onSaved: () => void }) {
+function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
   const isFut = jogo.modalidade?.includes("Futebol");
   const [gA, setGolsA] = useState(jogo.gols_time_a ?? 0);
   const [gB, setGolsB] = useState(jogo.gols_time_b ?? 0);
@@ -101,21 +101,37 @@ export default function PlacarPage() {
   const [jogos, setJogos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Todos");
-  const modalidades = ["Todos", "Futebol Masculino", "Futebol Feminino", "Vôlei Masculino", "Vôlei Feminino", "Tênis de Mesa"];
+  const [modalidadesAtivas, setModalidadesAtivas] = useState<string[]>(["Todos"]);
 
-  async function loadJogos() {
+  async function loadData() {
     setLoading(true);
     try {
-      const res = await fetch("/api/jogos?finalizado=false");
-      const data = await res.json();
-      setJogos(Array.isArray(data) ? data.sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) : []);
+      // Fetch both pendentes and all modalities with games
+      const resJogos = await fetch("/api/jogos?finalizado=false");
+      const dataJogos = await resJogos.json();
+      setJogos(Array.isArray(dataJogos) ? dataJogos.sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) : []);
+
+      const resMod = await fetch("/api/modalidades");
+      const dataMod = await resMod.json();
+      // Only keep modalities that have teams/groups, wait, we can just fetch all and only show those that have games.
+      // But we don't have all games here, just pending. 
+      // Let's just fetch all groups to know which modalities are active.
+      const resG = await fetch("/api/campeonato");
+      const dataCamp = await resG.json();
+      if (dataCamp.grupos) {
+         const mods = Array.from(new Set(dataCamp.grupos.map((g: any) => g.modalidade)));
+         setModalidadesAtivas(["Todos", ...(mods as string[])].sort());
+      } else {
+         setModalidadesAtivas(["Todos", "Futebol Masculino", "Tênis de Mesa", "Vôlei Feminino", "Vôlei Masculino"]);
+      }
+
     } finally {
       setLoading(false);
     }
   }
 	 
   
-  useEffect(() => { loadJogos(); }, []);
+  useEffect(() => { loadData(); }, []);
 
   return (
     <div className="page-wrapper">
@@ -127,12 +143,11 @@ export default function PlacarPage() {
               <h1 className="heading-lg">🎯 Inserir Placar</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{jogos.length} jogos pendentes</p>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={loadJogos}>🔑 Atualizar</button>
+            <button className="btn btn-ghost btn-sm" onClick={loadData}>🔑 Atualizar</button>
           </div>
 
-          {1/* Tabs */}
           <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "1rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
-            {modalidades.map(mod => (
+            {modalidadesAtivas.map(mod => (
               <button
                 key={mod}
                 onClick={() => setActiveTab(mod)}
@@ -157,7 +172,7 @@ export default function PlacarPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).map(jogo => (
-                <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadJogos} />
+                <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadData} />
               ))}
             </div>
           )}

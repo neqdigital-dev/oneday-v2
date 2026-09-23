@@ -1,0 +1,58 @@
+const fs = require('fs');
+const {createClient} = require('@supabase/supabase-js');
+const env = fs.readFileSync('.env.local', 'utf8').split('\n').reduce((acc, line) => {
+  if (line.includes('=') && !line.startsWith('#')) {
+    const [k, v] = line.trim().split('=');
+    acc[k] = v;
+  }
+  return acc;
+}, {});
+const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+async function check(modalidade) {
+  const { data: camp } = await sb.from('campeonatos').select('id').eq('status', 'ativo').single();
+  const campeonato_id = camp.id;
+
+  const { data: grupos } = await sb.from('grupos').select('id, nome').eq('campeonato_id', campeonato_id).eq('modalidade', modalidade).order('nome');
+  const { data: classifRaw } = await sb.from('classificacao').select('*, time:times(id, nome_igreja)').eq('campeonato_id', campeonato_id);
+
+  let classificados = [];
+  let terceirosLugares = [];
+
+  for (const grupo of grupos) {
+    const classifGrupo = classifRaw.filter(c => c.grupo_id === grupo.id);
+    const rankingGrupo = classifGrupo.sort((a, b) => {
+      const ptsA = (a.vitorias * 3) + a.empates;
+      const ptsB = (b.vitorias * 3) + b.empates;
+      if (ptsB !== ptsA) return ptsB - ptsA;
+      const sgA = a.gols_pro - a.gols_contra;
+      const sgB = b.gols_pro - b.gols_contra;
+      if (sgB !== sgA) return sgB - sgA;
+      return b.gols_pro - a.gols_pro;
+    });
+
+    if (rankingGrupo.length > 0) classificados.push(rankingGrupo[0]);
+    if (rankingGrupo.length > 1) classificados.push(rankingGrupo[1]);
+    if (rankingGrupo.length > 2) terceirosLugares.push(rankingGrupo[2]);
+  }
+
+  if (grupos.length === 3 && classificados.length === 6 && terceirosLugares.length > 0) {
+    const rankingTerceiros = terceirosLugares.sort((a, b) => {
+      const ptsA = (a.vitorias * 3) + a.empates;
+      const ptsB = (b.vitorias * 3) + b.empates;
+      if (ptsB !== ptsA) return ptsB - ptsA;
+      const sgA = a.gols_pro - a.gols_contra;
+      const sgB = b.gols_pro - b.gols_contra;
+      if (sgB !== sgA) return sgB - sgA;
+      return b.gols_pro - a.gols_pro;
+    });
+    classificados.push(rankingTerceiros[0]);
+    classificados.push(rankingTerceiros[1]);
+  }
+  
+  console.log('Grupos length:', grupos.length);
+  console.log('Classificados pre-terceiros:', classificados.length - (grupos.length===3?2:0));
+  console.log('TerceirosLugares length:', terceirosLugares.length);
+  console.log('Classificados final:', classificados.length);
+}
+check('Vôlei Feminino');
