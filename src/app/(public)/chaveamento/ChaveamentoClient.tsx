@@ -100,11 +100,11 @@ function TabelaClassificacao({ classificacoes }: { classificacoes: any[] }) {
                 <td style={{...tdStyle, textAlign:"left" as const, paddingLeft:"0.5rem", fontWeight:700, color: isClassificado ? "#10b981" : "var(--text-muted,#9ca3af)"}}>{idx+1}</td>
                 <td style={{...tdStyle, textAlign:"left" as const, fontWeight:600, whiteSpace:"nowrap"}}>
                   <div style={{ display:"flex", alignItems:"center", gap:"0.375rem" }}>
-                    {c.time?.imagem_url && <img src={c.time.imagem_url} alt="" style={{ width:"20px", height:"20px", borderRadius:"50%", objectFit:"cover" as const }} />}
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span>{nome}</span>
+                    <img src={c.time?.imagem_url || "/logo.png"} alt="" style={{ width:"20px", height:"20px", borderRadius:"50%", objectFit:"cover" as const }} />
+                    <div style={{ display: "flex", flexDirection: "column", maxWidth: "130px" }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={nome}>{nome}</span>
                       {c.time?.distrito && (
-                        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 500 }}>{c.time.distrito}</span>
+                        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.time.distrito}>{c.time.distrito}</span>
                       )}
                     </div>
                   </div>

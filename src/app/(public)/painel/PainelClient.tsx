@@ -38,11 +38,11 @@ function ClassificacaoTable({ grupo, classificacoes }: { grupo: any; classificac
                 <td style={{ color: "var(--text-muted)", fontWeight: "600" }}>{idx + 1}</td>
                 <td>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
-                    {c.times?.imagem_url && <img src={c.times.imagem_url} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />}
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontWeight: "600" }}>{c.times?.nome_base || c.times?.nome_igreja}</span>
+                    <img src={c.times?.imagem_url || "/logo.png"} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                    <div style={{ display: "flex", flexDirection: "column", maxWidth: "160px" }}>
+                      <span style={{ fontWeight: "600", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.times?.nome_base || c.times?.nome_igreja}>{c.times?.nome_base || c.times?.nome_igreja}</span>
                       {c.times?.distrito && (
-                        <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>{c.times.distrito}</span>
+                        <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={c.times.distrito}>{c.times.distrito}</span>
                       )}
                     </div>
                   </div>
