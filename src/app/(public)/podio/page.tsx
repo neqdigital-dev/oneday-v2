@@ -7,7 +7,7 @@ async function getData() {
   const { data: camp } = await sb.from("campeonatos").select("*").eq("status", "ativo").single();
   if (!camp) return null;
 
-  const { data: jogos } = await sb.from("jogos").select("*, time_a:time_a_id(*), time_b:time_b_id(*)").eq("campeonato_id", camp.id).neq("fase", "Fase de Grupos");
+  const { data: jogos } = await sb.from("games").select("*, time_a:times!games_time_a_id_fkey(*), time_b:times!games_time_b_id_fkey(*)").eq("campeonato_id", camp.id).neq("fase", "Fase de Grupos");
   
   return { camp, jogos };
 }

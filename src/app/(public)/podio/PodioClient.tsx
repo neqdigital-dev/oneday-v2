@@ -26,7 +26,10 @@ function PodiumUI({ p, mod }: { p: any; mod: string }) {
               <img src={p.vice.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
             </div>
             <span style={{ fontWeight:700, fontSize:"0.8125rem", color:"var(--text-secondary)" }}>2º Lugar</span>
-            <span style={{ fontSize:"0.6875rem", color:"var(--text-muted)", textAlign:"center", lineHeight:1.2, marginTop:"0.25rem" }}>{p.vice.nome_base || p.vice.nome_igreja}</span>
+            <span style={{ fontSize:"0.6875rem", color:"var(--text-muted)", textAlign:"center", lineHeight:1.2, marginTop:"0.25rem", display: "flex", flexDirection: "column" }}>
+              {p.vice.nome_base || p.vice.nome_igreja}
+              {p.vice.distrito && <span style={{ fontSize: "0.6rem", opacity: 0.8 }}>{p.vice.distrito}</span>}
+            </span>
           </div>
         )}
         {/* 1st place */}
@@ -37,7 +40,10 @@ function PodiumUI({ p, mod }: { p: any; mod: string }) {
               <img src={p.campeao.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
             </div>
             <span style={{ fontWeight:800, fontSize:"1rem", color:"#ca8a04" }}>CAMPEÃO</span>
-            <span style={{ fontSize:"0.75rem", fontWeight:700, textAlign:"center", lineHeight:1.2, marginTop:"0.25rem" }}>{p.campeao.nome_base || p.campeao.nome_igreja}</span>
+            <span style={{ fontSize:"0.75rem", fontWeight:700, textAlign:"center", lineHeight:1.2, marginTop:"0.25rem", display: "flex", flexDirection: "column" }}>
+              {p.campeao.nome_base || p.campeao.nome_igreja}
+              {p.campeao.distrito && <span style={{ fontSize: "0.65rem", opacity: 0.8, fontWeight: 500 }}>{p.campeao.distrito}</span>}
+            </span>
           </div>
         )}
         {/* 3rd place */}
@@ -47,7 +53,10 @@ function PodiumUI({ p, mod }: { p: any; mod: string }) {
               <img src={p.terceiro.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
             </div>
             <span style={{ fontWeight:700, fontSize:"0.8125rem", color:"var(--text-secondary)" }}>3º Lugar</span>
-            <span style={{ fontSize:"0.6875rem", color:"var(--text-muted)", textAlign:"center", lineHeight:1.2, marginTop:"0.25rem" }}>{p.terceiro.nome_base || p.terceiro.nome_igreja}</span>
+            <span style={{ fontSize:"0.6875rem", color:"var(--text-muted)", textAlign:"center", lineHeight:1.2, marginTop:"0.25rem", display: "flex", flexDirection: "column" }}>
+              {p.terceiro.nome_base || p.terceiro.nome_igreja}
+              {p.terceiro.distrito && <span style={{ fontSize: "0.6rem", opacity: 0.8 }}>{p.terceiro.distrito}</span>}
+            </span>
           </div>
         )}
       </div>
