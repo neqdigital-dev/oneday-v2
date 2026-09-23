@@ -8,7 +8,7 @@ async function getData() {
   if (!camp) return null;
 
   const { data: grupos } = await sb.from("grupos").select("*, times(*)").eq("campeonato_id", camp.id).order("nome");
-  const { data: classificacoes } = await sb.from("classificacao").select("*, times(id, nome_igreja, imagem_url, nome_base)").eq("campeonato_id", camp.id);
+  const { data: classificacoes } = await sb.from("classificacao").select("*, times(id, nome_igreja, imagem_url, nome_base, distrito)").eq("campeonato_id", camp.id);
 
   return { camp, grupos, classificacoes };
 }

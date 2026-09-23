@@ -11,7 +11,7 @@ async function getData() {
 
   const [{ data: jogos }, { data: grupos }, { data: classificacoes }] = await Promise.all([
     sb.from("games")
-      .select("*, time_a:times!games_time_a_id_fkey(id, nome_igreja, nome_base, imagem_url), time_b:times!games_time_b_id_fkey(id, nome_igreja, nome_base, imagem_url)")
+      .select("*, time_a:times!games_time_a_id_fkey(id, nome_igreja, nome_base, imagem_url, distrito), time_b:times!games_time_b_id_fkey(id, nome_igreja, nome_base, imagem_url, distrito)")
       .eq("campeonato_id", camp.id)
       .order("ordem_na_fase"),
     sb.from("grupos")
@@ -20,7 +20,7 @@ async function getData() {
       .order("modalidade")
       .order("nome"),
     sb.from("classificacao")
-      .select("*, time:times(id, nome_igreja, nome_base, imagem_url)")
+      .select("*, time:times(id, nome_igreja, nome_base, imagem_url, distrito)")
       .eq("campeonato_id", camp.id),
   ]);
 
