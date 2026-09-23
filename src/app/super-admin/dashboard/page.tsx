@@ -31,11 +31,25 @@ export default function SuperAdminDashboard() {
     try {
       const res = await fetch("/api/modalidades");
       if (res.ok) {
-        const data = await res.json();
-        setModalidadesOptions(data);
-        if (data.length > 0) {
-          if (!modalidade) setModalidade(data[0].nome);
-          if (!modalidadeReagenda) setModalidadeReagenda(data[0].nome);
+        const allMods = await res.json();
+        
+        // Filtra apenas modalidades que têm times cadastrados
+        const resTimesRaw = await fetch("/api/times");
+        let modsComTimes: string[] = [];
+        if (resTimesRaw.ok) {
+          const timesData = await resTimesRaw.json();
+          const times = Array.isArray(timesData) ? timesData : (timesData.times || []);
+          modsComTimes = Array.from(new Set(times.map((t: any) => t.modalidade).filter(Boolean)));
+        }
+
+        const filtered = modsComTimes.length > 0 
+          ? allMods.filter((m: any) => modsComTimes.includes(m.nome))
+          : allMods;
+
+        setModalidadesOptions(filtered);
+        if (filtered.length > 0) {
+          if (!modalidade) setModalidade(filtered[0].nome);
+          if (!modalidadeReagenda) setModalidadeReagenda(filtered[0].nome);
         }
       }
     } catch(e) {}
