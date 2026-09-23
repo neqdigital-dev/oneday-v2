@@ -310,9 +310,12 @@ export default function SuperAdminDashboard() {
           <h2 className="heading-lg">Painel do Super Admin</h2>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o campeonato.</p>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Link href="/super-admin/times" className="btn btn-primary" style={{ whiteSpace: "nowrap" }}>👥 Ver Times Cadastrados</Link>
-          <Link href="/super-admin/auditoria" className="btn btn-outline" style={{ whiteSpace: "nowrap" }}>📋 Log de Auditoria</Link>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <Link href="/placar" className="btn btn-primary" style={{ whiteSpace: "nowrap", background: "#f59e0b", borderColor: "#f59e0b", color: "#fff" }}>🎯 Placar</Link>
+          <Link href="/checkin" className="btn btn-primary" style={{ whiteSpace: "nowrap", background: "#10b981", borderColor: "#10b981", color: "#fff" }}>✅ Check-in</Link>
+          <Link href="/sumulas" className="btn btn-primary" style={{ whiteSpace: "nowrap", background: "#3b82f6", borderColor: "#3b82f6", color: "#fff" }}>🖨️ Súmulas</Link>
+          <Link href="/super-admin/times" className="btn btn-primary" style={{ whiteSpace: "nowrap" }}>👥 Times Cadastrados</Link>
+          <Link href="/super-admin/auditoria" className="btn btn-outline" style={{ whiteSpace: "nowrap" }}>📋 Auditoria</Link>
         </div>
       </div>
 
