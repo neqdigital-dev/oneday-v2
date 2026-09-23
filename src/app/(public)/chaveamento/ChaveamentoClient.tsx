@@ -22,11 +22,10 @@ function MatchCard({ jogo }: { jogo: any }) {
   const isFutebol = jogo.modalidade?.includes("Futebol");
   const isVoleiMasc = jogo.modalidade?.includes("Vôlei") && jogo.modalidade?.includes("Masculino");
   
-  // Show time only if it's Futebol or Volei Masculino
   const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
 
   return (
-    <div style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden", marginBottom:"0.5rem" }}>
+    <div style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
           {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
@@ -124,9 +123,16 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
   const gruposDoModal = grupos.filter((g: any) => g.modalidade === activeTab).sort((a: any, b: any) => a.nome.localeCompare(b.nome));
   const jogosFaseGrupos = jogos.filter((j: any) => j.modalidade === activeTab && j.fase === "Fase de Grupos");
   const jogosMataMata = jogos.filter((j: any) => j.modalidade === activeTab && j.fase !== "Fase de Grupos");
+  
+  // Custom grouping for Mata-Mata phases
+  const order = ["Quartas de Final", "Semifinal", "Disputa 3º Lugar", "Final"];
   const fasesMataMata: { fase: string; jogos: any[] }[] = [];
-  const fasesSet = new Set(jogosMataMata.map((j: any) => j.fase));
-  fasesSet.forEach((fase: any) => { fasesMataMata.push({ fase, jogos: jogosMataMata.filter((j: any) => j.fase === fase).sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase) }); });
+  order.forEach(fase => {
+    const jogosFase = jogosMataMata.filter((j: any) => j.fase === fase);
+    if (jogosFase.length > 0) {
+      fasesMataMata.push({ fase, jogos: jogosFase.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase) });
+    }
+  });
 
   return (
     <>
@@ -160,7 +166,8 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
           </div>
 
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>⚔️ Jogos da Fase de Grupos</h2>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:"1rem", marginBottom:"3rem" }}>
+          {/* Changed to flex-col for a single vertical list */}
+          <div style={{ display:"flex", flexDirection:"column", gap:"1rem", marginBottom:"3rem", maxWidth:"600px" }}>
             {jogosFaseGrupos.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase).map((jogo: any) => (
               <MatchCard key={jogo.id} jogo={jogo} />
             ))}
@@ -171,14 +178,16 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
       {fasesMataMata.length > 0 && (
         <>
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>🏆 Fase Eliminatória</h2>
-          {fasesMataMata.map(({ fase, jogos: jogosF }) => (
-            <div key={fase} style={{ marginBottom:"2rem" }}>
-              <h3 style={{ fontSize:"1rem", fontWeight:700, marginBottom:"1rem" }}>{fase}</h3>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:"1rem" }}>
-                {jogosF.map((jogo: any) => (<MatchCard key={jogo.id} jogo={jogo} />))}
+          <div style={{ display:"flex", flexDirection:"column", gap:"2rem", maxWidth:"600px", paddingBottom: "2rem" }}>
+            {fasesMataMata.map(({ fase, jogos: jogosF }) => (
+              <div key={fase}>
+                <h3 style={{ fontSize:"1rem", fontWeight:700, marginBottom:"1rem", borderBottom:"2px solid var(--glass-border,#e5e7eb)", paddingBottom:"0.5rem" }}>{fase}</h3>
+                <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
+                  {jogosF.map((jogo: any) => (<MatchCard key={jogo.id} jogo={jogo} />))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </>
       )}
 
