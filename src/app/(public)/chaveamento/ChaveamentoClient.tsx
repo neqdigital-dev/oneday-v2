@@ -159,6 +159,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
   classificacoes: any[];
 }) {
   const [activeTab, setActiveTab] = useState(modalidades[0] || "");
+  const [subTab, setSubTab] = useState<"grupos" | "eliminatoria">("grupos");
   const gruposDoModal = grupos.filter((g: any) => g.modalidade === activeTab).sort((a: any, b: any) => a.nome.localeCompare(b.nome));
   const jogosFaseGrupos = jogos.filter((j: any) => j.modalidade === activeTab && j.fase === "Fase de Grupos");
   const jogosMataMata = jogos.filter((j: any) => j.modalidade === activeTab && j.fase !== "Fase de Grupos");
@@ -207,7 +208,27 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
         ))}
       </div>
 
-      {gruposDoModal.length > 0 && (
+      <div style={{ display:"flex", gap:"1rem", marginBottom:"2rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)" }}>
+        <button onClick={() => setSubTab("grupos")} style={{
+          padding:"0.75rem 1rem", border:"none", background:"transparent", cursor:"pointer",
+          fontWeight: subTab === "grupos" ? 700 : 500,
+          color: subTab === "grupos" ? "var(--brand-blue,#0D2644)" : "var(--text-secondary,#6b7280)",
+          borderBottom: subTab === "grupos" ? "3px solid var(--primary,#2563eb)" : "3px solid transparent",
+          transition:"all 0.2s ease", fontSize:"0.9375rem"
+        }}>📋 Fase de Grupos</button>
+        
+        {fasesMataMata.length > 0 && (
+          <button onClick={() => setSubTab("eliminatoria")} style={{
+            padding:"0.75rem 1rem", border:"none", background:"transparent", cursor:"pointer",
+            fontWeight: subTab === "eliminatoria" ? 700 : 500,
+            color: subTab === "eliminatoria" ? "var(--brand-blue,#0D2644)" : "var(--text-secondary,#6b7280)",
+            borderBottom: subTab === "eliminatoria" ? "3px solid var(--primary,#2563eb)" : "3px solid transparent",
+            transition:"all 0.2s ease", fontSize:"0.9375rem"
+          }}>🏆 Fase Eliminatória</button>
+        )}
+      </div>
+
+      {subTab === "grupos" && gruposDoModal.length > 0 && (
         <>
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>📋 Classificação dos Grupos</h2>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))", gap:"1.5rem", marginBottom:"2.5rem" }}>
@@ -231,7 +252,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
         </>
       )}
 
-      {fasesMataMata.length > 0 && (
+      {subTab === "eliminatoria" && fasesMataMata.length > 0 && (
         <>
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>🏆 Fase Eliminatória</h2>
           
