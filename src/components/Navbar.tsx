@@ -13,7 +13,7 @@ export default function Navbar() {
         <Link href="/" className="navbar-logo" style={{ display: "flex", alignItems: "center" }}>
           <img src="/logo.png" alt="OneDay" style={{ height: "45px", objectFit: "contain" }} />
         </Link>
-        <div className="navbar-links">
+        <div className="navbar-links" style={{ overflowX: "auto", whiteSpace: "nowrap", paddingRight: "1rem" }}>
           {role === "super_admin" && <Link href="/super-admin/dashboard" className="navbar-link">Super Admin</Link>}
                     {(role === "super_admin" || role === "admin" || role === "placarista") && <Link href="/placar" className="navbar-link">Placar</Link>}
           {role === "super_admin" ? <Link href="/super-admin/times" className="navbar-link">Times</Link> : (role === "admin" || role === "lider") ? <Link href="/meus-times" className="navbar-link">Meus Times</Link> : null}
