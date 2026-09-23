@@ -350,7 +350,7 @@ export default function SuperAdminDashboard() {
               </select>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: (modalidade.toLowerCase().includes("futebol") || modalidade.toLowerCase().includes("futsal")) ? "1fr 1fr 1fr" : "1fr 1fr", gap: "1rem" }}>
               <div className="input-group">
                 <label className="input-label">Nº DE QUADRAS</label>
                 <input type="number" className="input" min={1} max={10} value={numQuadras} onChange={e => setNumQuadras(Number(e.target.value))} />
@@ -359,10 +359,12 @@ export default function SuperAdminDashboard() {
                 <label className="input-label">HORÁRIO DO 1º JOGO</label>
                 <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
               </div>
-              <div className="input-group">
-                <label className="input-label">TEMPO DE JOGO</label>
-                <input type="number" className="input" min={5} max={120} value={tempoJogo} onChange={e => setTempoJogo(Number(e.target.value))} />
-              </div>
+              {(modalidade.toLowerCase().includes("futebol") || modalidade.toLowerCase().includes("futsal")) && (
+                <div className="input-group">
+                  <label className="input-label">TEMPO DE JOGO</label>
+                  <input type="number" className="input" min={5} max={120} value={tempoJogo} onChange={e => setTempoJogo(Number(e.target.value))} />
+                </div>
+              )}
             </div>
 
             <div style={{ padding: "1rem", background: "var(--glass-bg, #f8fafc)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid var(--glass-border, #e2e8f0)" }}>
