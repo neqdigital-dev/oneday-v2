@@ -1,5 +1,6 @@
 "use client";
-import { useState, CSSProperties } from "react";
+import { useState, useEffect, CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 
 function formatHora(dateStr: string | null) {
   if (!dateStr) return "";
@@ -25,7 +26,7 @@ function MatchCard({ jogo }: { jogo: any }) {
   const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
 
   return (
-    <div style={{ width: "230px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
+    <div style={{ width: "190px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
           {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
@@ -34,18 +35,18 @@ function MatchCard({ jogo }: { jogo: any }) {
         </div>
       )}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)", background: aWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_a_id ? 0.5 : 1 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
-          <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeA} {aWins && "🏆"}</span>
+        <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
+          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
+          <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden" }}>{nomeA} {aWins && "🏆"}</span>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
           {jogo.finalizado ? (isFutebol ? jogo.gols_time_a ?? "—" : jogo.sets_vencidos_a ?? "—") : "—"}
         </span>
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", background: bWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_b_id ? 0.5 : 1 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
-          <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeB} {bWins && "🏆"}</span>
+        <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
+          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
+          <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden" }}>{nomeB} {bWins && "🏆"}</span>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
           {jogo.finalizado ? (isFutebol ? jogo.gols_time_b ?? "—" : jogo.sets_vencidos_b ?? "—") : "—"}
@@ -158,8 +159,20 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
   grupos: any[];
   classificacoes: any[];
 }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(modalidades[0] || "");
-  const [subTab, setSubTab] = useState<"grupos" | "eliminatoria">("grupos");
+  const [manualSubTab, setManualSubTab] = useState<"grupos" | "eliminatoria" | null>(null);
+
+  useEffect(() => {
+    setManualSubTab(null);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 15000); // 15s
+    return () => clearInterval(interval);
+  }, [router]);
   const gruposDoModal = grupos.filter((g: any) => g.modalidade === activeTab).sort((a: any, b: any) => a.nome.localeCompare(b.nome));
   const jogosFaseGrupos = jogos.filter((j: any) => j.modalidade === activeTab && j.fase === "Fase de Grupos");
   const jogosMataMata = jogos.filter((j: any) => j.modalidade === activeTab && j.fase !== "Fase de Grupos");
@@ -172,6 +185,8 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
       fasesMataMata.push({ fase, jogos: jogosFase.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase) });
     }
   });
+
+  const subTab = manualSubTab || (fasesMataMata.length > 0 ? "eliminatoria" : "grupos");
 
   const finalMatch = jogosMataMata.find((j: any) => j.fase === "Final");
   let podium = null;
@@ -209,7 +224,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
       </div>
 
       <div style={{ display:"flex", gap:"1rem", marginBottom:"2rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)" }}>
-        <button onClick={() => setSubTab("grupos")} style={{
+        <button onClick={() => setManualSubTab("grupos")} style={{
           padding:"0.75rem 1rem", border:"none", background:"transparent", cursor:"pointer",
           fontWeight: subTab === "grupos" ? 700 : 500,
           color: subTab === "grupos" ? "var(--brand-blue,#0D2644)" : "var(--text-secondary,#6b7280)",
@@ -218,13 +233,17 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
         }}>📋 Fase de Grupos</button>
         
         {fasesMataMata.length > 0 && (
-          <button onClick={() => setSubTab("eliminatoria")} style={{
+          <button onClick={() => setManualSubTab("eliminatoria")} style={{
             padding:"0.75rem 1rem", border:"none", background:"transparent", cursor:"pointer",
             fontWeight: subTab === "eliminatoria" ? 700 : 500,
             color: subTab === "eliminatoria" ? "var(--brand-blue,#0D2644)" : "var(--text-secondary,#6b7280)",
             borderBottom: subTab === "eliminatoria" ? "3px solid var(--primary,#2563eb)" : "3px solid transparent",
-            transition:"all 0.2s ease", fontSize:"0.9375rem"
-          }}>🏆 Fase Eliminatória</button>
+            transition:"all 0.2s ease", fontSize:"0.9375rem",
+            position: "relative"
+          }}>
+            🏆 Fase Eliminatória
+            {subTab === "grupos" && <span style={{ position:"absolute", top:"8px", right:"8px", width:"8px", height:"8px", background:"#ef4444", borderRadius:"50%", animation:"pulse 2s infinite" }} />}
+          </button>
         )}
       </div>
 
