@@ -380,6 +380,13 @@ export default function SuperAdminDashboard() {
               </button>
             </div>
 
+            <div style={{ padding: "1rem", background: "rgba(139, 92, 246, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#8b5cf6" }}>PASSO 3: IMPRESSÃO</span>
+              <a href={`/imprimir-sumulas/${encodeURIComponent(modalidade)}`} target="_blank" className="btn btn-primary" style={{ width: "100%", backgroundColor: "#8b5cf6", borderColor: "#8b5cf6", textAlign: "center", textDecoration: "none", pointerEvents: !modalidade ? "none" : "auto", opacity: !modalidade ? 0.5 : 1 }}>
+                🖨️ Imprimir Súmulas (PDF)
+              </a>
+            </div>
+
             <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--text-muted)", color: "var(--text-muted)", marginTop: "0.5rem" }}>
               🗑️ Apagar Tudo (Grupos e Jogos)
             </button>
