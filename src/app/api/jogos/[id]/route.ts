@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   
   // Calcula o vencedor automaticamente
   let vencedor_id = null;
-  if (vencedor_wo_id !== undefined) {
+  if (vencedor_wo_id) {
     updateData.vencedor_wo_id = vencedor_wo_id;
     vencedor_id = vencedor_wo_id;
   } else if (modalidade?.includes("Futebol")) {

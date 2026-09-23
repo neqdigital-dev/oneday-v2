@@ -31,7 +31,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
       };
 
       const res = await fetch(`/api/jogos/${jogo.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
