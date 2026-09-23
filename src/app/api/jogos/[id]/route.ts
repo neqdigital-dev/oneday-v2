@@ -64,8 +64,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await logAction((session.user as any).id, "ATUALIZA_PLACAR", { jogo_id: id, finalizado, updateData });
 
   if (finalizado && fase.includes("Grupo")) {
-    await atualizaClassificacao(sb, time_a_id, grupo_id, camp_id);
-    await atualizaClassificacao(sb, time_b_id, grupo_id, camp_id);
+    await atualizaClassificacao(sb, time_a_id, camp_id);
+    await atualizaClassificacao(sb, time_b_id, camp_id);
 
     // Verifica se todos os jogos desta modalidade na Fase de Grupos já terminaram
     const { data: pendentes } = await sb.from("games")
@@ -86,9 +86,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json({ success: true });
 }
 
-async function atualizaClassificacao(sb: any, time_id: string, grupo_id: string, campeonato_id: string) {
-  if (!time_id || !grupo_id || !campeonato_id) return;
+async function atualizaClassificacao(sb: any, time_id: string, campeonato_id: string) {
+  if (!time_id || !campeonato_id) return;
   
+  // Busca o grupo_id do time na tabela classificacao
+  const { data: classifExistente } = await sb.from("classificacao")
+    .select("id, grupo_id")
+    .eq("time_id", time_id)
+    .eq("campeonato_id", campeonato_id)
+    .single();
+
+  if (!classifExistente) return;
+
   // Pega todos os jogos finalizados do time na fase de grupos
   const { data: jogos } = await sb.from("games")
     .select("*")
@@ -122,11 +131,6 @@ async function atualizaClassificacao(sb: any, time_id: string, grupo_id: string,
       gols_contra += isA ? (j.sets_vencidos_b || 0) : (j.sets_vencidos_a || 0);
     }
   }
-
-  const { data: classifExistente } = await sb.from("classificacao")
-    .select("id")
-    .eq("time_id", time_id)
-    .single();
 
   if (classifExistente) {
     await sb.from("classificacao").update({
