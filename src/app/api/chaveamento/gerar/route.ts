@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
   const num_quadras = reqBody.num_quadras ? parseInt(reqBody.num_quadras) : 1;
   const [hora, min] = hora_inicio.split(":").map(Number);
   const baseDate = new Date();
-  baseDate.setHours(hora, min, 0, 0);
+  baseDate.setUTCHours(hora + 3, min, 0, 0);
 
   const temposQuadras = Array(num_quadras).fill(baseDate.getTime());
   const teamFreeTime: Record<string, number> = {};

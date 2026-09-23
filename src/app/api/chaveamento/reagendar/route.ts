@@ -9,8 +9,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
-  const { modalidade, num_quadras, hora_inicio } = await req.json();
+  const { modalidade, num_quadras, hora_inicio, pular_primeiros } = await req.json();
   const numQuadras = parseInt(num_quadras) || 1;
+  const pular = parseInt(pular_primeiros) || 0;
 
   const sb = supabaseAdmin();
   const { data: camp } = await sb.from("campeonatos").select("id").eq("status", "ativo").single();
@@ -28,17 +29,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nenhum jogo pendente encontrado." }, { status: 400 });
   }
 
-  const baseDate = new Date(); // Data de hoje
+  const jogosParaMudar = jogos.slice(pular);
+  if (jogosParaMudar.length === 0) {
+    return NextResponse.json({ success: true, reagendados: 0 });
+  }
+
+  const baseDate = new Date();
   const [hh, mm] = hora_inicio.split(":").map(Number);
-  baseDate.setHours(hh, mm, 0, 0);
+  baseDate.setUTCHours(hh + 3, mm, 0, 0);
 
   // Distribuir nos novos slots
-  const duracaoMinutos = modalidade.includes("futebol") ? 30 : 45;
+  const duracaoMinutos = modalidade.toLowerCase().includes("futebol") ? 30 : 45;
   const temposQuadras = Array(numQuadras).fill(new Date(baseDate).getTime());
 
   let reagendados = 0;
 
-  for (const jogo of jogos) {
+  for (const jogo of jogosParaMudar) {
     // Acha a quadra com o menor tempo (que desocupa primeiro)
     let quadraIndice = 0;
     let menorTempo = temposQuadras[0];

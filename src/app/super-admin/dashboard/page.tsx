@@ -22,6 +22,7 @@ export default function SuperAdminDashboard() {
   const [modalidadeReagenda, setModalidadeReagenda] = useState("");
   const [numQuadrasReagenda, setNumQuadrasReagenda] = useState(1);
   const [horaReagenda, setHoraReagenda] = useState("10:30");
+  const [pularPrimeiros, setPularPrimeiros] = useState(0);
 
   async function loadModalidades() {
     try {
@@ -126,7 +127,7 @@ export default function SuperAdminDashboard() {
       const res = await fetch("/api/chaveamento/reagendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modalidade: modalidadeReagenda, num_quadras: numQuadrasReagenda, hora_inicio: horaReagenda })
+        body: JSON.stringify({ modalidade: modalidadeReagenda, num_quadras: numQuadrasReagenda, hora_inicio: horaReagenda, pular_primeiros: pularPrimeiros })
       });
       if (res.ok) {
         const data = await res.json();
@@ -232,9 +233,12 @@ export default function SuperAdminDashboard() {
             </div>
 
             <button onClick={handleGenerateBracket} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", marginTop: "auto" }}>
-              {loading ? "Gerando..." : "⚽ Gerar Chaveamento Inicial"}
+              {loading ? "Gerando..." : "⚽ Gerar Chaveamento (Sorteio Aleatório)"}
             </button>
-            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%" }}>
+            <Link href="/super-admin/chaveamento-manual" className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center", textDecoration: "none" }}>
+              ⚙️ Configurar Grupos Manualmente
+            </Link>
+            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)" }}>
               🗑️ Limpar Chaveamento
             </button>
           </div>
@@ -267,6 +271,12 @@ export default function SuperAdminDashboard() {
                 <label className="input-label">RECOMEÇAR ÀS</label>
                 <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
               </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">IGNORAR PRIMEIROS X JOGOS</label>
+              <input type="number" className="input" min={0} max={20} value={pularPrimeiros} onChange={e => setPularPrimeiros(Number(e.target.value))} />
+              <p style={{fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem"}}>Se houver jogos já em andamento, digite a quantidade aqui para não alterar a quadra/horário deles.</p>
             </div>
 
             <button onClick={handleReagendar} className="btn" style={{ width: "100%", marginTop: "auto", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
