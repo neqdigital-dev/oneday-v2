@@ -109,7 +109,10 @@ export default function PlacarPage() {
       // Fetch both pendentes and all modalities with games
       const resJogos = await fetch("/api/jogos?finalizado=false");
       const dataJogos = await resJogos.json();
-      setJogos(Array.isArray(dataJogos) ? dataJogos.sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) : []);
+      const jogosValidos = Array.isArray(dataJogos) 
+        ? dataJogos.filter((j: any) => j.time_a_id && j.time_b_id).sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) 
+        : [];
+      setJogos(jogosValidos);
 
       const resMod = await fetch("/api/modalidades");
       const dataMod = await resMod.json();
