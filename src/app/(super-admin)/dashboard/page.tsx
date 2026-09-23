@@ -96,14 +96,28 @@ function GerarChaveamentoForm() {
   const router = useRouter();
 
   const [times, setTimes] = useState<any[]>([]);
+  const [usarCabecasDeChave, setUsarCabecasDeChave] = useState(false);
   const [cabecasDeChave, setCabecasDeChave] = useState<{time_id: string, grupo: string}[]>([]);
 
   useEffect(() => {
     fetch(`/api/times?modalidade=${encodeURIComponent(modalidade)}`)
       .then(res => res.json())
       .then(data => {
-        setTimes(Array.isArray(data) ? data : []);
-        setCabecasDeChave([]);
+        const teams = Array.isArray(data) ? data : [];
+        setTimes(teams);
+        
+        let numGrupos = 0;
+        const numTimes = teams.length;
+        if (numTimes >= 15) numGrupos = 4;
+        else if (numTimes >= 12) numGrupos = 3;
+        else numGrupos = Math.ceil(numTimes / 4);
+
+        const initialCC = [];
+        for (let i = 0; i < numGrupos; i++) {
+          initialCC.push({ time_id: "", grupo: "Grupo " + String.fromCharCode(65 + i) });
+        }
+        setCabecasDeChave(initialCC);
+        setUsarCabecasDeChave(false);
       }).catch(() => {});
   }, [modalidade]);
 
@@ -117,7 +131,7 @@ function GerarChaveamentoForm() {
         body: JSON.stringify({ 
           modalidade, 
           hora_inicio: horaInicio,
-          cabecas_de_chave: cabecasDeChave.filter(c => c.time_id)
+          cabecas_de_chave: usarCabecasDeChave ? cabecasDeChave.filter(c => c.time_id) : []
         }),
       });
       const data = await res.json();
@@ -164,35 +178,39 @@ function GerarChaveamentoForm() {
       </div>
 
       <div style={{ marginBottom: "1.25rem", padding: "1rem", background: "var(--glass-bg,#f9fafb)", borderRadius: "0.5rem", border: "1px solid var(--glass-border,#e5e7eb)" }}>
-        <label className="input-label" style={{ marginBottom: "0.25rem", display: "block" }}>👑 Cabeças de Chave (Opcional)</label>
-        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Escolha times específicos para cair em grupos específicos antes do sorteio.</p>
+        <label className="input-label" style={{ marginBottom: "0.5rem", display: "block" }}>Deseja definir Cabeças de Chave?</label>
         
-        {cabecasDeChave.map((cc, i) => (
-          <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-            <select className="input" style={{ flex: 2 }} value={cc.time_id} onChange={e => {
-              const newC = [...cabecasDeChave]; newC[i].time_id = e.target.value; setCabecasDeChave(newC);
-            }}>
-              <option value="">Selecione um time...</option>
-              {times.filter(t => !cabecasDeChave.some(c => c.time_id === t.id && c !== cc)).map(t => (
-                <option key={t.id} value={t.id}>{t.nome_base || t.nome_igreja}</option>
-              ))}
-            </select>
-            <select className="input" style={{ flex: 1 }} value={cc.grupo} onChange={e => {
-              const newC = [...cabecasDeChave]; newC[i].grupo = e.target.value; setCabecasDeChave(newC);
-            }}>
-              <option value="Grupo A">Grupo A</option>
-              <option value="Grupo B">Grupo B</option>
-              <option value="Grupo C">Grupo C</option>
-              <option value="Grupo D">Grupo D</option>
-              <option value="Grupo E">Grupo E</option>
-              <option value="Grupo F">Grupo F</option>
-              <option value="Grupo G">Grupo G</option>
-              <option value="Grupo H">Grupo H</option>
-            </select>
-            <button className="btn btn-danger btn-sm" onClick={() => setCabecasDeChave(cabecasDeChave.filter((_, idx) => idx !== i))}>X</button>
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.875rem", cursor: "pointer" }}>
+            <input type="radio" name="usar_cc" checked={!usarCabecasDeChave} onChange={() => setUsarCabecasDeChave(false)} />
+            Não (Sorteio 100% Aleatório)
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.875rem", cursor: "pointer" }}>
+            <input type="radio" name="usar_cc" checked={usarCabecasDeChave} onChange={() => setUsarCabecasDeChave(true)} />
+            Sim
+          </label>
+        </div>
+
+        {usarCabecasDeChave && (
+          <div style={{ background: "#fff", padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--glass-border,#e5e7eb)" }}>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              O sistema calculou que esta modalidade terá <strong>{cabecasDeChave.length} grupos</strong>. Selecione um time cabeça de chave para cada grupo.
+            </p>
+            {cabecasDeChave.map((cc, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
+                <div style={{ fontWeight: 600, width: "80px", color: "var(--brand-blue,#0D2644)", fontSize: "0.875rem" }}>{cc.grupo}</div>
+                <select className="input" style={{ flex: 1 }} value={cc.time_id} onChange={e => {
+                  const newC = [...cabecasDeChave]; newC[i].time_id = e.target.value; setCabecasDeChave(newC);
+                }}>
+                  <option value="">Sortear time aleatório...</option>
+                  {times.filter(t => !cabecasDeChave.some(c => c.time_id === t.id && c !== cc)).map(t => (
+                    <option key={t.id} value={t.id}>{t.nome_base || t.nome_igreja}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
-        ))}
-        <button className="btn btn-ghost btn-sm" onClick={() => setCabecasDeChave([...cabecasDeChave, { time_id: "", grupo: "Grupo A" }])}>+ Adicionar Cabeça de Chave</button>
+        )}
       </div>
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
         <button id="btn-gerar-chaveamento" className="btn btn-primary" onClick={handleGerar} disabled={!!loading}>
