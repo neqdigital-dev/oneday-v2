@@ -267,9 +267,19 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
 
       {subTab === "grupos" && gruposDoModal.length > 0 && (
         <>
+          <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--glass-bg)", borderRadius: "0.75rem", border: "1px solid var(--glass-border)" }}>
+            <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.75rem" }}>👀 Olhar apenas os jogos e classificação do meu grupo:</div>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <button onClick={() => setFiltroGrupo(null)} style={{ padding: "0.375rem 0.75rem", borderRadius: "2rem", border: "1px solid var(--glass-border)", background: filtroGrupo === null ? "var(--primary,#2563eb)" : "transparent", color: filtroGrupo === null ? "#fff" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Todos</button>
+              {gruposDoModal.map((g: any) => (
+                <button key={g.id} onClick={() => setFiltroGrupo(g.id)} style={{ padding: "0.375rem 0.75rem", borderRadius: "2rem", border: "1px solid var(--glass-border)", background: filtroGrupo === g.id ? "var(--primary,#2563eb)" : "transparent", color: filtroGrupo === g.id ? "#fff" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>{g.nome}</button>
+              ))}
+            </div>
+          </div>
+
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>📋 Classificação dos Grupos</h2>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))", gap:"1.5rem", marginBottom:"2.5rem" }}>
-            {gruposDoModal.map((grupo: any) => {
+            {gruposDoModal.filter((g: any) => !filtroGrupo || g.id === filtroGrupo).map((grupo: any) => {
               const classif = classificacoes.filter((c: any) => c.grupo_id === grupo.id);
               return (
                 <div key={grupo.id} style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"1rem", overflow:"hidden" }}>
@@ -281,16 +291,6 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
           </div>
 
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>⚔️ Jogos da Fase de Grupos</h2>
-          
-          <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--glass-bg)", borderRadius: "0.75rem", border: "1px solid var(--glass-border)" }}>
-            <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.75rem" }}>👀 Olhar apenas os jogos do meu grupo:</div>
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button onClick={() => setFiltroGrupo(null)} style={{ padding: "0.375rem 0.75rem", borderRadius: "2rem", border: "1px solid var(--glass-border)", background: filtroGrupo === null ? "var(--primary,#2563eb)" : "transparent", color: filtroGrupo === null ? "#fff" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>Todos</button>
-              {gruposDoModal.map((g: any) => (
-                <button key={g.id} onClick={() => setFiltroGrupo(g.id)} style={{ padding: "0.375rem 0.75rem", borderRadius: "2rem", border: "1px solid var(--glass-border)", background: filtroGrupo === g.id ? "var(--primary,#2563eb)" : "transparent", color: filtroGrupo === g.id ? "#fff" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>{g.nome}</button>
-              ))}
-            </div>
-          </div>
 
           <div style={{ display:"flex", flexDirection:"column", gap:"1rem", marginBottom:"3rem", maxWidth:"600px" }}>
             {jogosFaseGrupos
