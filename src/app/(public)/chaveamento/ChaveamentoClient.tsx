@@ -25,7 +25,7 @@ function MatchCard({ jogo }: { jogo: any }) {
   const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
 
   return (
-    <div style={{ width: "280px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
+    <div style={{ width: "230px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
           {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
@@ -120,7 +120,7 @@ function Podium({ p }: { p: any }) {
       {p.vice && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(2rem)" }}>
           <div style={{ width:"60px", height:"60px", borderRadius:"50%", border:"4px solid #94a3b8", overflow:"hidden", marginBottom:"0.5rem", background:"#fff" }}>
-            {p.vice.imagem_url ? <img src={p.vice.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#f1f5f9"}}></div>}
+            <img src={p.vice.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
           </div>
           <span style={{ fontWeight:700, fontSize:"0.875rem", color:"var(--text-secondary)" }}>2º Lugar</span>
           <span style={{ fontSize:"0.75rem", color:"var(--text-muted)" }}>{p.vice.nome_base || p.vice.nome_igreja}</span>
@@ -131,7 +131,7 @@ function Podium({ p }: { p: any }) {
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", zIndex:10 }}>
           <div style={{ fontSize:"2rem", marginBottom:"-0.5rem", zIndex:11 }}>👑</div>
           <div style={{ width:"90px", height:"90px", borderRadius:"50%", border:"6px solid #eab308", overflow:"hidden", marginBottom:"0.5rem", background:"#fff", boxShadow:"0 10px 25px -5px rgba(234,179,8,0.4)" }}>
-            {p.campeao.imagem_url ? <img src={p.campeao.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#fefce8"}}></div>}
+            <img src={p.campeao.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
           </div>
           <span style={{ fontWeight:800, fontSize:"1.125rem", color:"#ca8a04" }}>CAMPEÃO</span>
           <span style={{ fontSize:"0.875rem", fontWeight:600 }}>{p.campeao.nome_base || p.campeao.nome_igreja}</span>
@@ -141,7 +141,7 @@ function Podium({ p }: { p: any }) {
       {p.terceiro && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(3rem)" }}>
           <div style={{ width:"50px", height:"50px", borderRadius:"50%", border:"4px solid #b45309", overflow:"hidden", marginBottom:"0.5rem", background:"#fff" }}>
-            {p.terceiro.imagem_url ? <img src={p.terceiro.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#fff7ed"}}></div>}
+            <img src={p.terceiro.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
           </div>
           <span style={{ fontWeight:700, fontSize:"0.875rem", color:"var(--text-secondary)" }}>3º Lugar</span>
           <span style={{ fontSize:"0.75rem", color:"var(--text-muted)" }}>{p.terceiro.nome_base || p.terceiro.nome_igreja}</span>
@@ -260,7 +260,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
 
           {/* Visual Bracket Layout */}
           <div style={{ overflowX:"auto", paddingBottom:"2rem", WebkitOverflowScrolling:"touch" }}>
-            <div style={{ display:"flex", gap:"3rem", minWidth:"max-content", padding:"1rem" }}>
+            <div style={{ display:"flex", gap:"1.5rem", minWidth:"max-content", padding:"1rem" }}>
               {fasesMataMata.map(({ fase, jogos: jogosF }, idx) => (
                 <div key={fase} style={{ display:"flex", flexDirection:"column", gap:"2rem", justifyContent:"space-around" }}>
                   <div style={{ textAlign:"center", fontWeight:700, color:"var(--text-secondary)", marginBottom:"-1rem", textTransform:"uppercase", fontSize:"0.75rem", letterSpacing:"0.05em" }}>
