@@ -143,6 +143,26 @@ export default function SuperAdminDashboard() {
     setLoading(false);
   }
 
+  async function handleClearJogos() {
+    const pwd = window.prompt("Digite a senha de segurança para zerar APENAS A TABELA DE JOGOS:");
+    if (pwd !== "740689") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/limpar-jogos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) toast.success("Tabela de jogos zerada com sucesso!");
+      else toast.error("Erro ao limpar jogos");
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
   async function handleClearBracket() {
     if (!confirm("Isso apagará TODO O CHAVEAMENTO desta modalidade. Tem certeza absoluta?")) return;
     
@@ -355,9 +375,12 @@ export default function SuperAdminDashboard() {
               <button onClick={handleGerarJogos} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", backgroundColor: "#10b981", borderColor: "#10b981" }}>
                 {loading ? "Gerando..." : "⚽ Gerar Tabela de Jogos"}
               </button>
+              <button onClick={handleClearJogos} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)", marginTop: "0.5rem" }}>
+                🧹 Zerar Tabela de Jogos (Manter Grupos)
+              </button>
             </div>
 
-            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)", marginTop: "0.5rem" }}>
+            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--text-muted)", color: "var(--text-muted)", marginTop: "0.5rem" }}>
               🗑️ Apagar Tudo (Grupos e Jogos)
             </button>
           </div>
