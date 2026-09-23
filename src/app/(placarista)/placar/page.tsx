@@ -147,8 +147,9 @@ export default function PlacarPage() {
               <h1 className="heading-lg">🎯 Inserir Placar</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{jogos.length} jogos pendentes</p>
             </div>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <Link href="/checkin" className="btn btn-primary btn-sm">✅ Fazer Check-in</Link>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              <Link href="/checkin" className="btn btn-primary btn-sm" style={{ background: "#e2e8f0", color: "#1e293b", border: "none" }}>✅ Check-in</Link>
+              <Link href="/sumulas" className="btn btn-primary btn-sm">🖨️ Súmulas</Link>
               <button className="btn btn-ghost btn-sm" onClick={loadData}>🔑 Atualizar</button>
             </div>
           </div>

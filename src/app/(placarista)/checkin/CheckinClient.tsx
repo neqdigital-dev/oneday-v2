@@ -57,6 +57,9 @@ export default function CheckinClient({ times }: { times: any[] }) {
           <Link href="/checkin" style={{ padding: "8px 16px", borderRadius: "6px", background: "var(--brand-500, #3b82f6)", color: "white", textDecoration: "none", fontWeight: 600 }}>
             Fazer Check-in
           </Link>
+          <Link href="/sumulas" style={{ padding: "8px 16px", borderRadius: "6px", background: "#e2e8f0", color: "#1e293b", textDecoration: "none", fontWeight: 600 }}>
+            Súmulas
+          </Link>
         </div>
       </header>
 
