@@ -19,9 +19,9 @@ function MatchCard({ jogo }: { jogo: any }) {
   const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
   const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
-  const distritoA = jogo.time_a?.nome_base ? jogo.time_a?.nome_igreja : null;
+  const distritoA = jogo.time_a?.distrito || null;
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
-  const distritoB = jogo.time_b?.nome_base ? jogo.time_b?.nome_igreja : null;
+  const distritoB = jogo.time_b?.distrito || null;
   const isFutebol = jogo.modalidade?.includes("Futebol");
   const isVoleiMasc = jogo.modalidade?.includes("Vôlei") && jogo.modalidade?.includes("Masculino");
   
@@ -103,8 +103,8 @@ function TabelaClassificacao({ classificacoes }: { classificacoes: any[] }) {
                     {c.time?.imagem_url && <img src={c.time.imagem_url} alt="" style={{ width:"20px", height:"20px", borderRadius:"50%", objectFit:"cover" as const }} />}
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <span>{nome}</span>
-                      {c.time?.nome_base && c.time?.nome_igreja && (
-                        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 500 }}>{c.time.nome_igreja}</span>
+                      {c.time?.distrito && (
+                        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 500 }}>{c.time.distrito}</span>
                       )}
                     </div>
                   </div>
@@ -137,7 +137,10 @@ function Podium({ p }: { p: any }) {
             <img src={p.vice.imagem_url || "/logo.png"} alt="" style={{width:"100%",height:"100%",objectFit:"cover", background: "#f8fafc"}}/>
           </div>
           <span style={{ fontWeight:700, fontSize:"0.875rem", color:"var(--text-secondary)" }}>2º Lugar</span>
-          <span style={{ fontSize:"0.75rem", color:"var(--text-muted)" }}>{p.vice.nome_base || p.vice.nome_igreja}</span>
+          <span style={{ fontSize:"0.75rem", color:"var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {p.vice.nome_base || p.vice.nome_igreja}
+            {p.vice.distrito && <span style={{ fontSize: "0.65rem", opacity: 0.8 }}>{p.vice.distrito}</span>}
+          </span>
         </div>
       )}
       {/* 1st place */}
