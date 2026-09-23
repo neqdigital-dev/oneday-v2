@@ -19,10 +19,13 @@ export default function SuperAdminDashboard() {
   
   const [qtdTimes, setQtdTimes] = useState(8);
 
+  // Plano de chuva state
   const [modalidadeReagenda, setModalidadeReagenda] = useState("");
   const [numQuadrasReagenda, setNumQuadrasReagenda] = useState(1);
   const [horaReagenda, setHoraReagenda] = useState("10:30");
-  const [pularPrimeiros, setPularPrimeiros] = useState(0);
+  const [jogosPendentes, setJogosPendentes] = useState<any[]>([]);
+  const [jogosEmAndamento, setJogosEmAndamento] = useState<Set<string>>(new Set());
+  const [etapaChuva, setEtapaChuva] = useState<"config" | "selecao">("config");
 
   async function loadModalidades() {
     try {
@@ -108,7 +111,6 @@ export default function SuperAdminDashboard() {
   async function handleClearBracket() {
     if (!confirm("Isso apagará TODO O CHAVEAMENTO desta modalidade. Tem certeza absoluta?")) return;
     
-    // Future saving logic placeholder
     const wantsToSave = confirm("Deseja salvar os resultados atuais no histórico antes de limpar? (Sim para Salvar, Cancelar para Apenas Limpar)");
     if (wantsToSave) {
       toast("Função de salvar histórico em breve!", { icon: "🚧" });
@@ -133,10 +135,47 @@ export default function SuperAdminDashboard() {
     setLoading(false);
   }
 
-  async function handleReagendar() {
-    if (!confirm(`Mudar todos os jogos PENDENTES de ${modalidadeReagenda} para ${numQuadrasReagenda} quadra(s) iniciando às ${horaReagenda}?`)) return;
-    
-    const pwd = window.prompt("Digite a senha de segurança para reagendar os jogos (Plano de Chuva):");
+  // ========= PLANO DE CHUVA - NOVO FLUXO =========
+  async function handleCarregarJogosPendentes() {
+    if (!modalidadeReagenda) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/jogos?modalidade=${encodeURIComponent(modalidadeReagenda)}&finalizado=false`);
+      if (res.ok) {
+        const data = await res.json();
+        const sorted = Array.isArray(data)
+          ? data.sort((a: any, b: any) => (a.ordem_na_fase || 0) - (b.ordem_na_fase || 0))
+          : [];
+        setJogosPendentes(sorted);
+        setJogosEmAndamento(new Set());
+        setEtapaChuva("selecao");
+        if (sorted.length === 0) {
+          toast("Nenhum jogo pendente encontrado!", { icon: "✅" });
+        }
+      }
+    } catch (e) { toast.error("Erro ao carregar jogos"); }
+    setLoading(false);
+  }
+
+  function toggleEmAndamento(jogoId: string) {
+    setJogosEmAndamento(prev => {
+      const next = new Set(prev);
+      if (next.has(jogoId)) next.delete(jogoId);
+      else next.add(jogoId);
+      return next;
+    });
+  }
+
+  async function handleConfirmarReagendar() {
+    const jogosParaReagendar = jogosPendentes.filter(j => !jogosEmAndamento.has(j.id));
+    if (jogosParaReagendar.length === 0) {
+      toast.error("Nenhum jogo para reagendar! Todos estão marcados como em andamento.");
+      return;
+    }
+
+    if (!confirm(`Reagendar ${jogosParaReagendar.length} jogos para ${numQuadrasReagenda} quadra(s) a partir das ${horaReagenda}?`)) return;
+
+    const pwd = window.prompt("Digite a senha de segurança para reagendar os jogos:");
     if (pwd !== "740689") {
       toast.error("Senha incorreta. Ação cancelada.");
       return;
@@ -144,14 +183,22 @@ export default function SuperAdminDashboard() {
 
     setLoading(true);
     try {
+      const idsParaReagendar = jogosParaReagendar.map(j => j.id);
       const res = await fetch("/api/chaveamento/reagendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modalidade: modalidadeReagenda, num_quadras: numQuadrasReagenda, hora_inicio: horaReagenda, pular_primeiros: pularPrimeiros })
+        body: JSON.stringify({
+          modalidade: modalidadeReagenda,
+          num_quadras: numQuadrasReagenda,
+          hora_inicio: horaReagenda,
+          jogo_ids: idsParaReagendar
+        })
       });
       if (res.ok) {
         const data = await res.json();
-        toast.success(`${data.reagendados} jogos pendentes reagendados com sucesso!`);
+        toast.success(`${data.reagendados} jogos reagendados com sucesso!`);
+        setEtapaChuva("config");
+        setJogosPendentes([]);
       } else {
         const data = await res.json();
         toast.error(data.error || "Erro ao reagendar");
@@ -192,6 +239,12 @@ export default function SuperAdminDashboard() {
       } else toast.error("Erro ao simular");
     } catch(e) { toast.error("Erro interno"); }
     setLoading(false);
+  }
+
+  function formatHora(dateStr: string | null) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
   }
 
   return (
@@ -264,45 +317,109 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        {/* Card 2: Plano de Chuva (Reagendamento) */}
+        {/* Card 2: Plano de Chuva (Reagendamento) - REDESENHADO */}
         <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #3b82f6" }}>
           <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#3b82f6" }}>🌧️ Plano de Chuva (Reagendar)</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
-            Mudou o número de quadras no meio do evento? Realoque os <b>jogos pendentes</b> sem afetar o que já foi jogado.
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+            Mudou o número de quadras? Realoque os jogos pendentes mantendo a sequência.
           </p>
           
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div className="input-group">
-              <label className="input-label">MODALIDADE GERAL</label>
-              <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
-                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
-                {modalidadesOptions.map(m => (
-                  <option key={m.id} value={m.nome}>{m.nome}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          {etapaChuva === "config" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div className="input-group">
-                <label className="input-label">NOVAS QUADRAS</label>
-                <input type="number" className="input" min={1} max={10} value={numQuadrasReagenda} onChange={e => setNumQuadrasReagenda(Number(e.target.value))} />
+                <label className="input-label">MODALIDADE</label>
+                <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
+                  {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                  {modalidadesOptions.map(m => (
+                    <option key={m.id} value={m.nome}>{m.nome}</option>
+                  ))}
+                </select>
               </div>
-              <div className="input-group">
-                <label className="input-label">RECOMEÇAR ÀS</label>
-                <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="input-group">
+                  <label className="input-label">NOVAS QUADRAS</label>
+                  <input type="number" className="input" min={1} max={10} value={numQuadrasReagenda} onChange={e => setNumQuadrasReagenda(Number(e.target.value))} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">RECOMEÇAR ÀS</label>
+                  <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
+                </div>
+              </div>
+
+              <button onClick={handleCarregarJogosPendentes} className="btn" style={{ width: "100%", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
+                {loading ? "Carregando..." : "🔍 Ver Jogos Pendentes"}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>{jogosPendentes.length} jogos pendentes</span>
+                <button onClick={() => setEtapaChuva("config")} style={{ background: "none", border: "none", color: "#3b82f6", cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem" }}>← Voltar</button>
+              </div>
+              
+              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", background: "#fef3c7", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", margin: 0 }}>
+                ⚠️ Marque os jogos que estão <b>ACONTECENDO AGORA</b>. Eles NÃO serão alterados. Todos os outros serão reagendados para {numQuadrasReagenda} quadra(s) a partir das {horaReagenda}.
+              </p>
+
+              <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.5rem", paddingRight: "0.25rem" }}>
+                {jogosPendentes.map((jogo, idx) => {
+                  const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "Time A";
+                  const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "Time B";
+                  const isEmAndamento = jogosEmAndamento.has(jogo.id);
+                  return (
+                    <div 
+                      key={jogo.id} 
+                      onClick={() => toggleEmAndamento(jogo.id)}
+                      style={{ 
+                        display: "flex", alignItems: "center", gap: "0.75rem", 
+                        padding: "0.625rem 0.75rem", borderRadius: "0.625rem", cursor: "pointer",
+                        border: isEmAndamento ? "2px solid #f59e0b" : "1px solid var(--glass-border, #e5e7eb)",
+                        background: isEmAndamento ? "rgba(245,158,11,0.08)" : "var(--glass-bg, #fff)",
+                        transition: "all 0.15s ease"
+                      }}
+                    >
+                      <div style={{ 
+                        width: "22px", height: "22px", borderRadius: "0.375rem", flexShrink: 0,
+                        border: isEmAndamento ? "2px solid #f59e0b" : "2px solid #d1d5db",
+                        background: isEmAndamento ? "#f59e0b" : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#fff", fontSize: "0.75rem", fontWeight: 700
+                      }}>
+                        {isEmAndamento && "⏳"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "0.8125rem", fontWeight: 600, display: "flex", gap: "0.375rem", alignItems: "center" }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nomeA}</span>
+                          <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>vs</span>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nomeB}</span>
+                        </div>
+                        <div style={{ fontSize: "0.6875rem", color: "var(--text-muted)" }}>
+                          #{jogo.ordem_na_fase || idx+1} • {formatHora(jogo.data_hora)} • {jogo.local || "—"}
+                        </div>
+                      </div>
+                      {isEmAndamento && (
+                        <span style={{ fontSize: "0.65rem", background: "#f59e0b", color: "#fff", padding: "0.125rem 0.5rem", borderRadius: "1rem", fontWeight: 700, flexShrink: 0 }}>
+                          EM CAMPO
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                <button 
+                  onClick={handleConfirmarReagendar} 
+                  className="btn" 
+                  style={{ flex: 1, backgroundColor: "#3b82f6", color: "#fff" }} 
+                  disabled={loading}
+                >
+                  {loading ? "Processando..." : `🔄 Reagendar ${jogosPendentes.length - jogosEmAndamento.size} jogos`}
+                </button>
               </div>
             </div>
-
-            <div className="input-group">
-              <label className="input-label">IGNORAR PRIMEIROS X JOGOS</label>
-              <input type="number" className="input" min={0} max={20} value={pularPrimeiros} onChange={e => setPularPrimeiros(Number(e.target.value))} />
-              <p style={{fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem"}}>Se houver jogos já em andamento, digite a quantidade aqui para não alterar a quadra/horário deles.</p>
-            </div>
-
-            <button onClick={handleReagendar} className="btn" style={{ width: "100%", marginTop: "auto", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
-              {loading ? "Processando..." : "🔄 Reagendar Pendentes"}
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Card 3: Simulação de Testes */}
@@ -337,4 +454,3 @@ export default function SuperAdminDashboard() {
     </div>
   );
 }
-
