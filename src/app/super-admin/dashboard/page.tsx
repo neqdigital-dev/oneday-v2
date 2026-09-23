@@ -103,7 +103,7 @@ export default function SuperAdminDashboard() {
 
   async function handleGenerateBracket() {
     if (!modalidade) return;
-    if (!confirm("Tem certeza que deseja gerar o chaveamento para " + modalidade + "?")) return;
+    if (!confirm("Tem certeza que deseja apagar TUDO (times e jogos) desta modalidade e gerar NOVOS GRUPOS aleatórios?")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/chaveamento/gerar", {
@@ -117,6 +117,27 @@ export default function SuperAdminDashboard() {
       } else {
         const data = await res.json();
         toast.error(data.error || "Erro ao gerar chaveamento");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+  async function handleGerarJogos() {
+    if (!modalidade) return;
+    if (!confirm("Isso apagará APENAS os jogos existentes da Fase de Grupos e criará novos baseados nos grupos atuais. Tem certeza?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/gerar-jogos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade, num_quadras: numQuadras, hora_inicio: horaInicio })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("Tabela de jogos gerada! " + data.jogos + " partidas criadas.");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao gerar jogos");
       }
     } catch (e) { toast.error("Erro interno"); }
     setLoading(false);
@@ -319,14 +340,25 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <button onClick={handleGenerateBracket} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", marginTop: "auto" }}>
-              {loading ? "Gerando..." : "⚽ Gerar Chaveamento (Sorteio Aleatório)"}
-            </button>
-            <Link href="/super-admin/chaveamento-manual" className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center", textDecoration: "none" }}>
-              ⚙️ Configurar Grupos Manualmente
-            </Link>
-            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)" }}>
-              🗑️ Limpar Chaveamento
+            <div style={{ padding: "1rem", background: "var(--glass-bg, #f8fafc)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid var(--glass-border, #e2e8f0)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)" }}>PASSO 1: DEFINIR GRUPOS</span>
+              <button onClick={handleGenerateBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%" }}>
+                {loading ? "Sorteando..." : "🎲 Sortear Grupos Aleatórios"}
+              </button>
+              <Link href="/super-admin/chaveamento-manual" className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center", textDecoration: "none" }}>
+                ⚙️ Ou Configurar Grupos Manualmente
+              </Link>
+            </div>
+
+            <div style={{ padding: "1rem", background: "rgba(16, 185, 129, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>PASSO 2: GERAR JOGOS</span>
+              <button onClick={handleGerarJogos} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", backgroundColor: "#10b981", borderColor: "#10b981" }}>
+                {loading ? "Gerando..." : "⚽ Gerar Tabela de Jogos"}
+              </button>
+            </div>
+
+            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)", marginTop: "0.5rem" }}>
+              🗑️ Apagar Tudo (Grupos e Jogos)
             </button>
           </div>
         </div>
