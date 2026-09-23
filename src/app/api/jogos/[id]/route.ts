@@ -146,7 +146,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
     .select("id")
     .eq("campeonato_id", campeonato_id)
     .eq("modalidade", modalidade)
-    .in("fase", ["Quartas de Final", "Semifinal", "Final", "Disputa 3º Lugar"]);
+    .in("fase", ["Quartas de Final", "Semifinal", "Final"]);
     
   if (jogosExistentes && jogosExistentes.length > 0) return; // Já gerou
 
@@ -168,8 +168,8 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
   let terceirosLugares: any[] = [];
 
   for (const grupo of grupos) {
-    const classifGrupo = classifRaw?.filter((c: any) => c.grupo_id === grupo.id) || [];
-    const rankingGrupo = classifGrupo.sort((a: any, b: any) => {
+    const classifGrupo = classifRaw?.filter(c => c.grupo_id === grupo.id) || [];
+    const rankingGrupo = classifGrupo.sort((a, b) => {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
@@ -185,7 +185,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
   }
 
   if (grupos.length === 3 && classificados.length === 6 && terceirosLugares.length > 0) {
-    const rankingTerceiros = terceirosLugares.sort((a: any, b: any) => {
+    const rankingTerceiros = terceirosLugares.sort((a, b) => {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
@@ -198,7 +198,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
     classificados.push(rankingTerceiros[1]);
   }
 
-  const rankingGeral = classificados.sort((a: any, b: any) => {
+  const rankingGeral = classificados.sort((a, b) => {
     const ptsA = (a.vitorias * 3) + a.empates;
     const ptsB = (b.vitorias * 3) + b.empates;
     if (ptsB !== ptsA) return ptsB - ptsA;
@@ -212,7 +212,6 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
   
   if (rankingGeral.length === 8) {
     const { data: final } = await sb.from("games").insert({ campeonato_id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
-    await sb.from("games").insert({ campeonato_id, modalidade, fase: "Disputa 3º Lugar", ordem_na_fase: 1 });
     
     const { data: semi1 } = await sb.from("games").insert({ campeonato_id, modalidade, fase: "Semifinal", ordem_na_fase: 1, proximo_jogo_id: final?.id }).select().single();
     const { data: semi2 } = await sb.from("games").insert({ campeonato_id, modalidade, fase: "Semifinal", ordem_na_fase: 2, proximo_jogo_id: final?.id }).select().single();
@@ -238,7 +237,6 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
     totalCriados = 8;
   } else if (rankingGeral.length === 4) {
     const { data: final } = await sb.from("games").insert({ campeonato_id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
-    await sb.from("games").insert({ campeonato_id, modalidade, fase: "Disputa 3º Lugar", ordem_na_fase: 1 });
 
     const sMatches = [
       { tA: rankingGeral[0].time_id, tB: rankingGeral[3].time_id, next: final?.id },

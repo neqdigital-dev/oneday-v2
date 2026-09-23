@@ -8,4 +8,12 @@ const env = fs.readFileSync('.env.local', 'utf8').split('\n').reduce((acc, line)
   return acc;
 }, {});
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-sb.from('grupos').select('*').then(res => { console.log('Grupos:', res.data); });
+
+async function check() {
+  const { data: games } = await sb.from('games').select('*').in('fase', ['Quartas de Final', 'Semifinal', 'Final']);
+  console.log('Knockout games:', games ? games.length : 0);
+  
+  const { data: allGroupGames } = await sb.from('games').select('*').eq('fase', 'Fase de Grupos').eq('finalizado', false);
+  console.log('Pending group games:', allGroupGames ? allGroupGames.length : 0);
+}
+check();

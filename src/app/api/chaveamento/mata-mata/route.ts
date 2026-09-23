@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     .select("id")
     .eq("campeonato_id", camp.id)
     .eq("modalidade", modalidade)
-    .in("fase", ["Quartas de Final", "Semifinal", "Final", "Disputa 3º Lugar"]);
+    .in("fase", ["Quartas de Final", "Semifinal", "Final"]);
     
   if (jogosExistentes && jogosExistentes.length > 0) {
     return NextResponse.json({ error: "Mata-mata já gerado para esta modalidade." }, { status: 400 });
@@ -98,7 +98,6 @@ export async function POST(req: NextRequest) {
     // QUARTAS DE FINAL -> SEMIFINAL -> FINAL
     // placeholder games first to get IDs
     const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
-    const { data: disputa3 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Disputa 3º Lugar", ordem_na_fase: 1 }).select().single();
     
     const { data: semi1 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 1, proximo_jogo_id: final?.id }).select().single();
     const { data: semi2 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 2, proximo_jogo_id: final?.id }).select().single();
@@ -125,7 +124,6 @@ export async function POST(req: NextRequest) {
   } else if (rankingGeral.length === 4) {
     // SEMIFINAL -> FINAL
     const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
-    const { data: disputa3 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Disputa 3º Lugar", ordem_na_fase: 1 }).select().single();
 
     const sMatches = [
       { tA: rankingGeral[0].time_id, tB: rankingGeral[3].time_id, next: final?.id },

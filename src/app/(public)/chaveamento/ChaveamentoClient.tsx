@@ -15,8 +15,8 @@ function getModalidadeIcon(mod: string) {
 }
 
 function MatchCard({ jogo }: { jogo: any }) {
-  const aWins = jogo.vencedor_id === jogo.time_a_id;
-  const bWins = jogo.vencedor_id === jogo.time_b_id;
+  const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
+  const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
   const isFutebol = jogo.modalidade?.includes("Futebol");
@@ -25,7 +25,7 @@ function MatchCard({ jogo }: { jogo: any }) {
   const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
 
   return (
-    <div style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
+    <div style={{ width: "280px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
           {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
@@ -33,7 +33,7 @@ function MatchCard({ jogo }: { jogo: any }) {
           {jogo.finalizado && <span style={{ color:"#10b981", fontWeight:600 }}>✓ Finalizado</span>}
         </div>
       )}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)", background: aWins ? "rgba(234,179,8,0.06)" : "transparent" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)", background: aWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_a_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
           {jogo.time_a?.imagem_url && <img src={jogo.time_a.imagem_url} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover" as const }} />}
           <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeA} {aWins && "🏆"}</span>
@@ -42,7 +42,7 @@ function MatchCard({ jogo }: { jogo: any }) {
           {jogo.finalizado ? (isFutebol ? jogo.gols_time_a ?? "—" : jogo.sets_vencidos_a ?? "—") : "—"}
         </span>
       </div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", background: bWins ? "rgba(234,179,8,0.06)" : "transparent" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", background: bWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_b_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
           {jogo.time_b?.imagem_url && <img src={jogo.time_b.imagem_url} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover" as const }} />}
           <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeB} {bWins && "🏆"}</span>
@@ -112,6 +112,45 @@ function TabelaClassificacao({ classificacoes }: { classificacoes: any[] }) {
   );
 }
 
+function Podium({ p }: { p: any }) {
+  if (!p) return null;
+  return (
+    <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:"1rem", margin:"3rem 0" }}>
+      {/* 2nd place */}
+      {p.vice && (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(2rem)" }}>
+          <div style={{ width:"60px", height:"60px", borderRadius:"50%", border:"4px solid #94a3b8", overflow:"hidden", marginBottom:"0.5rem", background:"#fff" }}>
+            {p.vice.imagem_url ? <img src={p.vice.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#f1f5f9"}}></div>}
+          </div>
+          <span style={{ fontWeight:700, fontSize:"0.875rem", color:"var(--text-secondary)" }}>2º Lugar</span>
+          <span style={{ fontSize:"0.75rem", color:"var(--text-muted)" }}>{p.vice.nome_base || p.vice.nome_igreja}</span>
+        </div>
+      )}
+      {/* 1st place */}
+      {p.campeao && (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", zIndex:10 }}>
+          <div style={{ fontSize:"2rem", marginBottom:"-0.5rem", zIndex:11 }}>👑</div>
+          <div style={{ width:"90px", height:"90px", borderRadius:"50%", border:"6px solid #eab308", overflow:"hidden", marginBottom:"0.5rem", background:"#fff", boxShadow:"0 10px 25px -5px rgba(234,179,8,0.4)" }}>
+            {p.campeao.imagem_url ? <img src={p.campeao.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#fefce8"}}></div>}
+          </div>
+          <span style={{ fontWeight:800, fontSize:"1.125rem", color:"#ca8a04" }}>CAMPEÃO</span>
+          <span style={{ fontSize:"0.875rem", fontWeight:600 }}>{p.campeao.nome_base || p.campeao.nome_igreja}</span>
+        </div>
+      )}
+      {/* 3rd place */}
+      {p.terceiro && (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", transform:"translateY(3rem)" }}>
+          <div style={{ width:"50px", height:"50px", borderRadius:"50%", border:"4px solid #b45309", overflow:"hidden", marginBottom:"0.5rem", background:"#fff" }}>
+            {p.terceiro.imagem_url ? <img src={p.terceiro.imagem_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <div style={{width:"100%",height:"100%",background:"#fff7ed"}}></div>}
+          </div>
+          <span style={{ fontWeight:700, fontSize:"0.875rem", color:"var(--text-secondary)" }}>3º Lugar</span>
+          <span style={{ fontSize:"0.75rem", color:"var(--text-muted)" }}>{p.terceiro.nome_base || p.terceiro.nome_igreja}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos, classificacoes }: {
   campNome: string;
   modalidades: string[];
@@ -124,8 +163,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
   const jogosFaseGrupos = jogos.filter((j: any) => j.modalidade === activeTab && j.fase === "Fase de Grupos");
   const jogosMataMata = jogos.filter((j: any) => j.modalidade === activeTab && j.fase !== "Fase de Grupos");
   
-  // Custom grouping for Mata-Mata phases
-  const order = ["Quartas de Final", "Semifinal", "Disputa 3º Lugar", "Final"];
+  const order = ["Quartas de Final", "Semifinal", "Final"];
   const fasesMataMata: { fase: string; jogos: any[] }[] = [];
   order.forEach(fase => {
     const jogosFase = jogosMataMata.filter((j: any) => j.fase === fase);
@@ -133,6 +171,25 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
       fasesMataMata.push({ fase, jogos: jogosFase.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase) });
     }
   });
+
+  const finalMatch = jogosMataMata.find((j: any) => j.fase === "Final");
+  let podium = null;
+  if (finalMatch?.finalizado && finalMatch.vencedor_id) {
+    const campeaoId = finalMatch.vencedor_id;
+    const viceId = finalMatch.time_a_id === campeaoId ? finalMatch.time_b_id : finalMatch.time_a_id;
+    
+    const semiMatches = jogosMataMata.filter((j: any) => j.fase === "Semifinal");
+    let terceiroId = null;
+    for (const semi of semiMatches) {
+      if (semi.vencedor_id === campeaoId) {
+        terceiroId = semi.time_a_id === campeaoId ? semi.time_b_id : semi.time_a_id;
+        break;
+      }
+    }
+    
+    const getTeam = (tId: string) => classificacoes.find((c: any) => c.time_id === tId)?.time || jogosMataMata.find((j: any) => j.time_a_id === tId)?.time_a || jogosMataMata.find((j: any) => j.time_b_id === tId)?.time_b;
+    podium = { campeao: getTeam(campeaoId), vice: getTeam(viceId), terceiro: getTeam(terceiroId) };
+  }
 
   return (
     <>
@@ -166,7 +223,6 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
           </div>
 
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>⚔️ Jogos da Fase de Grupos</h2>
-          {/* Changed to flex-col for a single vertical list */}
           <div style={{ display:"flex", flexDirection:"column", gap:"1rem", marginBottom:"3rem", maxWidth:"600px" }}>
             {jogosFaseGrupos.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase).map((jogo: any) => (
               <MatchCard key={jogo.id} jogo={jogo} />
@@ -178,15 +234,25 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
       {fasesMataMata.length > 0 && (
         <>
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>🏆 Fase Eliminatória</h2>
-          <div style={{ display:"flex", flexDirection:"column", gap:"2rem", maxWidth:"600px", paddingBottom: "2rem" }}>
-            {fasesMataMata.map(({ fase, jogos: jogosF }) => (
-              <div key={fase}>
-                <h3 style={{ fontSize:"1rem", fontWeight:700, marginBottom:"1rem", borderBottom:"2px solid var(--glass-border,#e5e7eb)", paddingBottom:"0.5rem" }}>{fase}</h3>
-                <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
-                  {jogosF.map((jogo: any) => (<MatchCard key={jogo.id} jogo={jogo} />))}
+          
+          <Podium p={podium} />
+
+          {/* Visual Bracket Layout */}
+          <div style={{ overflowX:"auto", paddingBottom:"2rem", WebkitOverflowScrolling:"touch" }}>
+            <div style={{ display:"flex", gap:"3rem", minWidth:"max-content", padding:"1rem" }}>
+              {fasesMataMata.map(({ fase, jogos: jogosF }, idx) => (
+                <div key={fase} style={{ display:"flex", flexDirection:"column", gap:"2rem", justifyContent:"space-around" }}>
+                  <div style={{ textAlign:"center", fontWeight:700, color:"var(--text-secondary)", marginBottom:"-1rem", textTransform:"uppercase", fontSize:"0.75rem", letterSpacing:"0.05em" }}>
+                    {fase}
+                  </div>
+                  {jogosF.map((jogo: any) => (
+                    <div key={jogo.id} style={{ position:"relative" }}>
+                      <MatchCard jogo={jogo} />
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </>
       )}
