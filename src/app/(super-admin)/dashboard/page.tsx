@@ -1,276 +1,312 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-function NovoCampeonatoForm() {
-  const [nome, setNome] = useState("");
-  const [ano, setAno] = useState(new Date().getFullYear() + 1);
-  const [regioes, setRegioes] = useState([
-    { nome: "Região 1 | Moving", descricao: "" },
-    { nome: "Região 2 | I Am", descricao: "" },
-    { nome: "Região 3 | Chamados", descricao: "" },
-    { nome: "Região 4 | Together", descricao: "" },
-    { nome: "Região 5 | Reaviva", descricao: "" },
-    { nome: "Região 6 | Bethel", descricao: "" },
-    { nome: "Região 7 | Tô Ligado", descricao: "" },
-    { nome: "Região 8 | Forgiven", descricao: "" },
-  ]);
-  const [loading, setLoading] = useState(false);
+export default function SuperAdminDashboard() {
   const router = useRouter();
+  const [nome, setNome] = useState("");
+  const [ano, setAno] = useState(new Date().getFullYear());
+  const [loading, setLoading] = useState(false);
+  
+  const [modalidadesOptions, setModalidadesOptions] = useState<any[]>([]);
+  const [novaModalidade, setNovaModalidade] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [modalidade, setModalidade] = useState("");
+  const [numQuadras, setNumQuadras] = useState(2);
+  const [horaInicio, setHoraInicio] = useState("08:30");
+  
+  const [qtdTimes, setQtdTimes] = useState(8);
+
+  const [modalidadeReagenda, setModalidadeReagenda] = useState("");
+  const [numQuadrasReagenda, setNumQuadrasReagenda] = useState(1);
+  const [horaReagenda, setHoraReagenda] = useState("10:30");
+
+  async function loadModalidades() {
+    try {
+      const res = await fetch("/api/modalidades");
+      if (res.ok) {
+        const data = await res.json();
+        setModalidadesOptions(data);
+        if (data.length > 0) {
+          if (!modalidade) setModalidade(data[0].nome);
+          if (!modalidadeReagenda) setModalidadeReagenda(data[0].nome);
+        }
+      }
+    } catch(e) {}
+  }
+
+  useEffect(() => {
+    loadModalidades();
+  }, []);
+
+  async function handleAddModalidade() {
+    if (!novaModalidade) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/modalidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: novaModalidade })
+      });
+      if (res.ok) {
+        toast.success("Modalidade adicionada!");
+        setNovaModalidade("");
+        loadModalidades();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao adicionar");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+  async function handleCreateChampionship(e: any) {
     e.preventDefault();
-    if (!nome) { toast.error("Nome do campeonato obrigatório."); return; }
-    if (!confirm(`Tem certeza? O campeonato atual será ARQUIVADO e um novo campeonato "${nome}" será criado. Todos os cadastros recomeçarão do zero.`)) return;
-
+    if (!confirm("Atenção! Gerar um novo campeonato arquivará todos os dados do campeonato atual. Você tem certeza?")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/campeonato/novo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, ano, regioes: regioes.filter(r => r.nome) }),
+        body: JSON.stringify({ nome, ano })
       });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error || "Erro ao criar campeonato."); return; }
-      toast.success(`Campeonato "${nome}" criado!`);
-      router.refresh();
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) {
+        toast.success("Novo campeonato criado com sucesso!");
+        setNome("");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao criar campeonato");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
   }
 
-  return (
-    <div className="card card-padded-lg animate-fade-in" style={{ marginBottom: "1.5rem", border: "1px solid rgba(139,92,246,0.3)" }}>
-      <h2 className="heading-sm" style={{ marginBottom: "0.25rem", color: "#a78bfa" }}>🆕 Criar Novo Campeonato</h2>
-      <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
-        Isso arquivará o campeonato atual. Os dados anteriores ficam preservados no histórico.
-      </p>
-      <form onSubmit={handleSubmit}>
-        <div className="form-grid form-grid-2" style={{ marginBottom: "1.5rem" }}>
-          <div className="input-group">
-            <label className="input-label">Nome do Campeonato *</label>
-            <input id="camp-nome" type="text" className="input" placeholder="Ex: Oneday 2027" value={nome} onChange={e => setNome(e.target.value)} required />
-          </div>
-          <div className="input-group">
-            <label className="input-label">Ano *</label>
-            <input id="camp-ano" type="number" className="input" min="2024" max="2099" value={ano} onChange={e => setAno(parseInt(e.target.value))} required />
-          </div>
-        </div>
-
-        <div style={{ marginBottom: "1.5rem" }}>
-          <label className="input-label" style={{ marginBottom: "0.75rem", display: "block" }}>Regiões (editável)</label>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.5rem" }}>
-            {regioes.map((r, i) => (
-              <input key={i} type="text" className="input" style={{ fontSize: "0.8125rem" }}
-                value={r.nome}
-                onChange={e => setRegioes(prev => prev.map((reg, idx) => idx === i ? { ...reg, nome: e.target.value } : reg))}
-                placeholder={`Região ${i + 1}`}
-              />
-            ))}
-          </div>
-          <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: "0.75rem" }}
-            onClick={() => setRegioes(prev => [...prev, { nome: "", descricao: "" }])}>
-            + Adicionar região
-          </button>
-        </div>
-
-        <div className="alert alert-warning" style={{ marginBottom: "1.25rem" }}>
-          ⚠️ <strong>Atenção:</strong> Esta ação é irreversível. O campeonato atual será arquivado.
-        </div>
-        <button id="btn-criar-campeonato" type="submit" className="btn btn-lg" style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", color: "#fff" }} disabled={loading}>
-          {loading ? "Criando..." : "🚀 Criar novo campeonato"}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function GerarChaveamentoForm() {
-  const [modalidade, setModalidade] = useState("Futebol Masculino");
-  
-  const [horaInicio, setHoraInicio] = useState("08:30");
-  const [loading, setLoading] = useState("");
-  const router = useRouter();
-
-  const [times, setTimes] = useState<any[]>([]);
-  const [usarCabecasDeChave, setUsarCabecasDeChave] = useState(false);
-  const [cabecasDeChave, setCabecasDeChave] = useState<{time_id: string, grupo: string}[]>([]);
-
-  useEffect(() => {
-    fetch(`/api/times?modalidade=${encodeURIComponent(modalidade)}`)
-      .then(res => res.json())
-      .then(data => {
-        const teams = Array.isArray(data) ? data : [];
-        setTimes(teams);
-        
-        let numGrupos = 0;
-        const numTimes = teams.length;
-        if (numTimes >= 15) numGrupos = 4;
-        else if (numTimes >= 12) numGrupos = 3;
-        else numGrupos = Math.ceil(numTimes / 4);
-
-        const initialCC = [];
-        for (let i = 0; i < numGrupos; i++) {
-          initialCC.push({ time_id: "", grupo: "Grupo " + String.fromCharCode(65 + i) });
-        }
-        setCabecasDeChave(initialCC);
-        setUsarCabecasDeChave(false);
-      }).catch(() => {});
-  }, [modalidade]);
-
-  async function handleGerar() {
-    if (!confirm(`Gerar chaveamento para ${modalidade}? Isso apagará o chaveamento anterior desta modalidade.`)) return;
-    setLoading("gerar");
+  async function handleGenerateBracket() {
+    if (!modalidade) return;
+    if (!confirm("Tem certeza que deseja gerar o chaveamento para " + modalidade + "?")) return;
+    setLoading(true);
     try {
       const res = await fetch("/api/chaveamento/gerar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          modalidade, 
-          hora_inicio: horaInicio,
-          cabecas_de_chave: usarCabecasDeChave ? cabecasDeChave.filter(c => c.time_id) : []
-        }),
+        body: JSON.stringify({ modalidade, num_quadras: numQuadras, hora_inicio: horaInicio })
       });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error || "Erro ao gerar chaveamento."); return; }
-      toast.success(`Chaveamento gerado! ${data.grupos} grupos, ${data.jogos} jogos.`);
-      router.refresh();
-    } finally {
-      setLoading("");
-    }
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("Chaveamento gerado! " + data.grupos + " grupos formados.");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao gerar chaveamento");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
   }
 
-  async function handleLimpar() {
-    if (!confirm("Tem certeza? TODOS os jogos, grupos e classificações serão apagados do campeonato ativo.")) return;
-    setLoading("limpar");
+  async function handleClearBracket() {
+    if (!confirm("Isso apagará TODO O CHAVEAMENTO desta modalidade. Tem certeza absoluta?")) return;
+    setLoading(true);
     try {
-      const res = await fetch("/api/chaveamento/limpar", { method: "POST" });
-      if (!res.ok) { toast.error("Erro ao limpar chaveamento."); return; }
-      toast.success("Chaveamento zerado com sucesso!");
-      router.refresh();
-    } finally {
-      setLoading("");
-    }
+      const res = await fetch("/api/chaveamento/limpar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) toast.success("Chaveamento limpo com sucesso!");
+      else toast.error("Erro ao limpar chaveamento");
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+  async function handleReagendar() {
+    if (!confirm(`Mudar todos os jogos PENDENTES de ${modalidadeReagenda} para ${numQuadrasReagenda} quadra(s) iniciando às ${horaReagenda}?`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/reagendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade: modalidadeReagenda, num_quadras: numQuadrasReagenda, hora_inicio: horaReagenda })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`${data.reagendados} jogos pendentes reagendados com sucesso!`);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao reagendar");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+  async function handleGerarTimes() {
+    if (!confirm("Deseja criar " + qtdTimes + " times de teste para " + modalidade + "?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/simulacao/times", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade, quantidade: qtdTimes })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(data.criados + " times fictícios criados!");
+      } else toast.error("Erro ao gerar times");
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+  async function handleSimularPlacares() {
+    if (!confirm("Preencher placares aleatórios para todos os jogos em aberto de " + modalidade + "?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/simulacao/placar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(data.simulados + " jogos simulados!");
+      } else toast.error("Erro ao simular");
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
   }
 
   return (
-    <div className="card card-padded-lg animate-fade-in" style={{ marginBottom: "1.5rem" }}>
-      <h2 className="heading-sm" style={{ marginBottom: "1.5rem" }}>🎯 Gerar Chaveamento</h2>
-      <div className="form-grid form-grid-2" style={{ marginBottom: "1.25rem" }}>
-        <div className="input-group">
-          <label className="input-label">Modalidade</label>
-          <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
-            <option>Futebol Masculino</option>
-            <option>Futebol Feminino</option>
-            <option>Vôlei Masculino</option>
-            <option>Vôlei Feminino</option>
-            <option>Tênis de Mesa</option>
-          </select>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <h2 className="heading-lg">Painel do Super Admin</h2>
+          <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o campeonato.</p>
         </div>
-
-        <div className="input-group">
-          <label className="input-label">Hora de Início</label>
-          <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Link href="/super-admin/times" className="btn btn-primary" style={{ whiteSpace: "nowrap" }}>👥 Ver Times Cadastrados</Link>
+          <Link href="/super-admin/auditoria" className="btn btn-outline" style={{ whiteSpace: "nowrap" }}>📋 Log de Auditoria</Link>
         </div>
       </div>
 
-      <div style={{ marginBottom: "1.25rem", padding: "1rem", background: "var(--glass-bg,#f9fafb)", borderRadius: "0.5rem", border: "1px solid var(--glass-border,#e5e7eb)" }}>
-        <label className="input-label" style={{ marginBottom: "0.5rem", display: "block" }}>Deseja definir Cabeças de Chave?</label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
         
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.875rem", cursor: "pointer" }}>
-            <input type="radio" name="usar_cc" checked={!usarCabecasDeChave} onChange={() => setUsarCabecasDeChave(false)} />
-            Não (Sorteio 100% Aleatório)
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.875rem", cursor: "pointer" }}>
-            <input type="radio" name="usar_cc" checked={usarCabecasDeChave} onChange={() => setUsarCabecasDeChave(true)} />
-            Sim
-          </label>
+        {/* Card 0: Modalidades */}
+        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>
+          <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#10b981" }}>➕ Gerenciar Modalidades</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
+            Adicione esportes dinamicamente. Eles aparecerão em todas as telas (para Líderes, Placaristas e Simulação).
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">NOME DA MODALIDADE</label>
+              <input type="text" className="input" placeholder="Ex: Vôlei de Dupla Feminino" value={novaModalidade} onChange={e => setNovaModalidade(e.target.value)} />
+            </div>
+            <button onClick={handleAddModalidade} className="btn" style={{ width: "100%", backgroundColor: "#10b981", color: "#fff" }} disabled={loading || !novaModalidade}>
+              {loading ? "Adicionando..." : "✅ Adicionar Modalidade"}
+            </button>
+          </div>
         </div>
 
-        {usarCabecasDeChave && (
-          <div style={{ background: "#fff", padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--glass-border,#e5e7eb)" }}>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-              O sistema calculou que esta modalidade terá <strong>{cabecasDeChave.length} grupos</strong>. Selecione um time cabeça de chave para cada grupo.
-            </p>
-            {cabecasDeChave.map((cc, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.75rem" }}>
-                <div style={{ fontWeight: 600, width: "80px", color: "var(--brand-blue,#0D2644)", fontSize: "0.875rem" }}>{cc.grupo}</div>
-                <select className="input" style={{ flex: 1 }} value={cc.time_id} onChange={e => {
-                  const newC = [...cabecasDeChave]; newC[i].time_id = e.target.value; setCabecasDeChave(newC);
-                }}>
-                  <option value="">Sortear time aleatório...</option>
-                  {times.filter(t => !cabecasDeChave.some(c => c.time_id === t.id && c !== cc)).map(t => (
-                    <option key={t.id} value={t.id}>{t.nome_base || t.nome_igreja}</option>
-                  ))}
-                </select>
+        {/* Card 1: Chaveamento */}
+        <div className="card card-padded" style={{ display: "flex", flexDirection: "column" }}>
+          <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-blue, #0D2644)" }}>⚽ Controle de Chaveamento</h3>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">MODALIDADE GERAL</label>
+              <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
+                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                {modalidadesOptions.map(m => (
+                  <option key={m.id} value={m.nome}>{m.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="input-group">
+                <label className="input-label">Nº DE QUADRAS</label>
+                <input type="number" className="input" min={1} max={10} value={numQuadras} onChange={e => setNumQuadras(Number(e.target.value))} />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-        <button id="btn-gerar-chaveamento" className="btn btn-primary" onClick={handleGerar} disabled={!!loading}>
-          {loading === "gerar" ? "Gerando..." : "⚡ Gerar chaveamento automático"}
-        </button>
-        <Link href="/chaveamento" className="btn btn-ghost btn-sm">Ver chaveamento →</Link>
-        <Link href={`/imprimir-sumulas/${encodeURIComponent(modalidade)}`} className="btn btn-ghost btn-sm no-print">🖨️ Imprimir Súmulas</Link>
-        <button id="btn-limpar-chaveamento" className="btn btn-danger btn-sm" style={{ marginLeft: "auto" }} onClick={handleLimpar} disabled={!!loading}>
-          {loading === "limpar" ? "..." : "🗑️ Limpar tudo"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export default function SuperAdminDashboard() {
-  const [campeonatos, setCampeonatos] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch("/api/campeonato").then(r => r.json()).then(d => setCampeonatos(Array.isArray(d) ? d : [])).catch(() => {});
-  }, []);
-
-  return (
-    <div className="page-wrapper">
-      <Navbar />
-      <main className="page-content">
-        <div className="container-md">
-          <div className="section-header" style={{ marginBottom: "2rem" }}>
-            <div>
-              <h1 className="heading-lg">
-                <span style={{ color: "#a78bfa" }}>🔴 Super Admin</span>
-              </h1>
-              <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>Controle total do campeonato</p>
+              <div className="input-group">
+                <label className="input-label">HORÁRIO DO 1º JOGO</label>
+                <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+              </div>
             </div>
-            <Link href="/super-admin/times" className="btn btn-ghost btn-sm">👥 Ver Times Cadastrados →</Link>
-          </div>
 
-          <GerarChaveamentoForm />
-          <NovoCampeonatoForm />
-
-          {/* Histórico */}
-          <div className="card card-padded" style={{ marginBottom: "1.5rem" }}>
-            <h2 className="heading-sm" style={{ marginBottom: "1rem" }}>📚 Histórico de Campeonatos</h2>
-            <div className="table-wrapper" style={{ border: "none" }}>
-              <table className="table">
-                <thead><tr><th>Nome</th><th>Ano</th><th>Status</th></tr></thead>
-                <tbody>
-                  {campeonatos.map((c: any) => (
-                    <tr key={c.id}>
-                      <td style={{ fontWeight: "600" }}>{c.nome}</td>
-                      <td>{c.ano}</td>
-                      <td><span className={`badge ${c.status === "ativo" ? "badge-green" : "badge-gray"}`}>{c.status === "ativo" ? "✓ Ativo" : "Arquivado"}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <button onClick={handleGenerateBracket} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", marginTop: "auto" }}>
+              {loading ? "Gerando..." : "⚽ Gerar Chaveamento (Sorteio Aleatório)"}
+            </button>
+            <Link href="/super-admin/chaveamento-manual" className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center" }}>
+              ⚙️ Configurar Grupos Manualmente
+            </Link>
+            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)" }}>
+              🗑️ Limpar Chaveamento
+            </button>
           </div>
         </div>
-      </main>
+
+        {/* Card 2: Plano de Chuva (Reagendamento) */}
+        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #3b82f6" }}>
+          <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#3b82f6" }}>🌧️ Plano de Chuva (Reagendar)</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
+            Mudou o número de quadras no meio do evento? Realoque os <b>jogos pendentes</b> sem afetar o que já foi jogado.
+          </p>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">MODALIDADE GERAL</label>
+              <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
+                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                {modalidadesOptions.map(m => (
+                  <option key={m.id} value={m.nome}>{m.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="input-group">
+                <label className="input-label">NOVAS QUADRAS</label>
+                <input type="number" className="input" min={1} max={10} value={numQuadrasReagenda} onChange={e => setNumQuadrasReagenda(Number(e.target.value))} />
+              </div>
+              <div className="input-group">
+                <label className="input-label">RECOMEÇAR ÀS</label>
+                <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
+              </div>
+            </div>
+
+            <button onClick={handleReagendar} className="btn" style={{ width: "100%", marginTop: "auto", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
+              {loading ? "Processando..." : "🔄 Reagendar Pendentes"}
+            </button>
+          </div>
+        </div>
+
+        {/* Card 3: Simulação de Testes */}
+        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px dashed var(--brand-300)" }}>
+          <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-600)" }}>🧪 Modo Simulação</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
+            Testes usando a <b>modalidade selecionada no 1º quadro</b>.
+          </p>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="input-group">
+              <label className="input-label">TIMES FICTÍCIOS A GERAR</label>
+              <select className="input" value={qtdTimes} onChange={e => setQtdTimes(Number(e.target.value))}>
+                <option value={8}>8 Times</option>
+                <option value={11}>11 Times (Teste Ímpar)</option>
+                <option value={12}>12 Times</option>
+                <option value={13}>13 Times (Teste Ímpar)</option>
+                <option value={16}>16 Times</option>
+                <option value={20}>20 Times</option>
+              </select>
+            </div>
+
+            <button onClick={handleGerarTimes} className="btn btn-success" disabled={loading || !modalidade} style={{ width: "100%" }}>
+              1. Criar {qtdTimes} times falsos
+            </button>
+            <button onClick={handleSimularPlacares} className="btn btn-warning" disabled={loading || !modalidade} style={{ width: "100%", color: "#000" }}>
+              3. Simular Resultados
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
