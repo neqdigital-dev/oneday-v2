@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 import { toast } from "react-hot-toast";
 
 function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
@@ -146,7 +147,10 @@ export default function PlacarPage() {
               <h1 className="heading-lg">🎯 Inserir Placar</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{jogos.length} jogos pendentes</p>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={loadData}>🔑 Atualizar</button>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <Link href="/checkin" className="btn btn-primary btn-sm">✅ Fazer Check-in</Link>
+              <button className="btn btn-ghost btn-sm" onClick={loadData}>🔑 Atualizar</button>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "1rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
