@@ -19,7 +19,9 @@ function MatchCard({ jogo }: { jogo: any }) {
   const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
   const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
+  const distritoA = jogo.time_a?.nome_base ? jogo.time_a?.nome_igreja : null;
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
+  const distritoB = jogo.time_b?.nome_base ? jogo.time_b?.nome_igreja : null;
   const isFutebol = jogo.modalidade?.includes("Futebol");
   const isVoleiMasc = jogo.modalidade?.includes("Vôlei") && jogo.modalidade?.includes("Masculino");
   
@@ -37,7 +39,10 @@ function MatchCard({ jogo }: { jogo: any }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)", background: aWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_a_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
-          <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden" }}>{nomeA} {aWins && "🏆"}</span>
+          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeA} {aWins && "🏆"}</span>
+            {distritoA && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoA}</span>}
+          </div>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
           {jogo.finalizado ? (isFutebol ? jogo.gols_time_a ?? "—" : jogo.sets_vencidos_a ?? "—") : "—"}
@@ -46,7 +51,10 @@ function MatchCard({ jogo }: { jogo: any }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", background: bWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_b_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
-          <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden" }}>{nomeB} {bWins && "🏆"}</span>
+          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeB} {bWins && "🏆"}</span>
+            {distritoB && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoB}</span>}
+          </div>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
           {jogo.finalizado ? (isFutebol ? jogo.gols_time_b ?? "—" : jogo.sets_vencidos_b ?? "—") : "—"}
@@ -91,10 +99,15 @@ function TabelaClassificacao({ classificacoes }: { classificacoes: any[] }) {
               <tr key={c.id} style={{ borderBottom:"1px solid var(--glass-border,#f3f4f6)", background: isClassificado ? "rgba(16,185,129,0.04)" : "transparent" }}>
                 <td style={{...tdStyle, textAlign:"left" as const, paddingLeft:"0.5rem", fontWeight:700, color: isClassificado ? "#10b981" : "var(--text-muted,#9ca3af)"}}>{idx+1}</td>
                 <td style={{...tdStyle, textAlign:"left" as const, fontWeight:600, whiteSpace:"nowrap"}}>
-                  <span style={{ display:"inline-flex", alignItems:"center", gap:"0.25rem" }}>
-                    {c.time?.imagem_url && <img src={c.time.imagem_url} alt="" style={{ width:"16px", height:"16px", borderRadius:"50%", objectFit:"cover" as const }} />}
-                    {nome}
-                  </span>
+                  <div style={{ display:"flex", alignItems:"center", gap:"0.375rem" }}>
+                    {c.time?.imagem_url && <img src={c.time.imagem_url} alt="" style={{ width:"20px", height:"20px", borderRadius:"50%", objectFit:"cover" as const }} />}
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <span>{nome}</span>
+                      {c.time?.nome_base && c.time?.nome_igreja && (
+                        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 500 }}>{c.time.nome_igreja}</span>
+                      )}
+                    </div>
+                  </div>
                 </td>
                 <td style={tdStyle}>{c.jogos_disputados}</td>
                 <td style={{...tdStyle, color:"#10b981"}}>{c.vitorias}</td>
