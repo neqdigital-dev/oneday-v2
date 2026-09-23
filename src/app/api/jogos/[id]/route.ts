@@ -168,8 +168,8 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
   let terceirosLugares: any[] = [];
 
   for (const grupo of grupos) {
-    const classifGrupo = classifRaw?.filter(c => c.grupo_id === grupo.id) || [];
-    const rankingGrupo = classifGrupo.sort((a, b) => {
+    const classifGrupo = classifRaw?.filter((c: any) => c.grupo_id === grupo.id) || [];
+    const rankingGrupo = classifGrupo.sort((a: any, b: any) => {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
@@ -185,7 +185,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
   }
 
   if (grupos.length === 3 && classificados.length === 6 && terceirosLugares.length > 0) {
-    const rankingTerceiros = terceirosLugares.sort((a, b) => {
+    const rankingTerceiros = terceirosLugares.sort((a: any, b: any) => {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
@@ -198,7 +198,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
     classificados.push(rankingTerceiros[1]);
   }
 
-  const rankingGeral = classificados.sort((a, b) => {
+  const rankingGeral = classificados.sort((a: any, b: any) => {
     const ptsA = (a.vitorias * 3) + a.empates;
     const ptsB = (b.vitorias * 3) + b.empates;
     if (ptsB !== ptsA) return ptsB - ptsA;
