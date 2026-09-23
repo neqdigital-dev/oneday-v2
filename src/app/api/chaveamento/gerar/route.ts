@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (role !== "super_admin") return NextResponse.json({ error: "Apenas Super Admin." }, { status: 403 });
 
   const sb = supabaseAdmin();
-  const { modalidade, hora_inicio = "08:30" } = await req.json();
+  const { modalidade, hora_inicio = "08:30", cabecas_de_chave = [] } = await req.json();
 
   const { data: camp } = await sb.from("campeonatos").select("id").eq("status", "ativo").single();
   if (!camp) return NextResponse.json({ error: "Nenhum campeonato ativo." }, { status: 400 });
@@ -65,14 +65,43 @@ export async function POST(req: NextRequest) {
     if (g) grupos.push(g);
   }
 
-  for (let i = 0; i < times.length; i++) {
-    const grupoIdx = i % numGrupos;
-    await sb.from("times").update({ grupo_id: grupos[grupoIdx].id }).eq("id", times[i].id);
-    await sb.from("classificacao").insert({
-      campeonato_id: campId,
-      time_id: times[i].id,
-      grupo_id: grupos[grupoIdx].id,
-    });
+  // Pre-allocate cabecas de chave
+  const timesCabecas: any[] = [];
+  const timesRestantes: any[] = [];
+
+  for (const t of timesModal) {
+    const cc = cabecas_de_chave.find((c: any) => c.time_id === t.id);
+    if (cc) timesCabecas.push({ ...t, grupoNomeDesejado: cc.grupo });
+    else timesRestantes.push(t);
+  }
+
+  const teamsPorGrupo = grupos.map(g => ({ grupo: g, count: 0 }));
+
+  for (const tc of timesCabecas) {
+    let grupoDestino = grupos.find(g => g.nome === tc.grupoNomeDesejado);
+    // If the chosen group doesn't exist (e.g. selected Group D but only 3 groups), fallback
+    if (!grupoDestino) {
+      teamsPorGrupo.sort((a, b) => a.count - b.count);
+      grupoDestino = teamsPorGrupo[0].grupo;
+    }
+
+    await sb.from("times").update({ grupo_id: grupoDestino.id }).eq("id", tc.id);
+    await sb.from("classificacao").insert({ campeonato_id: campId, time_id: tc.id, grupo_id: grupoDestino.id });
+    
+    const countObj = teamsPorGrupo.find(g => g.grupo.id === grupoDestino.id);
+    if (countObj) countObj.count++;
+  }
+
+  // Insert remaining teams balancedly
+  const timesShuffled = shuffle(timesRestantes);
+  for (const tr of timesShuffled) {
+    teamsPorGrupo.sort((a, b) => a.count - b.count);
+    const grupoDestino = teamsPorGrupo[0].grupo;
+
+    await sb.from("times").update({ grupo_id: grupoDestino.id }).eq("id", tr.id);
+    await sb.from("classificacao").insert({ campeonato_id: campId, time_id: tr.id, grupo_id: grupoDestino.id });
+    
+    teamsPorGrupo[0].count++;
   }
 
   // NOVO ALGORITMO DE AGENDAMENTO (DESCANSO) - Sequência Única (Rodízio de Grupos)
@@ -164,3 +193,4 @@ export async function POST(req: NextRequest) {
   await logAction((session.user as any).id, "GERAR_CHAVEAMENTO", { modalidade, grupos: numGrupos, jogos: totalSalvos });
   return NextResponse.json({ success: true, grupos: numGrupos, jogos: totalSalvos });
 }
+

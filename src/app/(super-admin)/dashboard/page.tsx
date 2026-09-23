@@ -95,6 +95,18 @@ function GerarChaveamentoForm() {
   const [loading, setLoading] = useState("");
   const router = useRouter();
 
+  const [times, setTimes] = useState<any[]>([]);
+  const [cabecasDeChave, setCabecasDeChave] = useState<{time_id: string, grupo: string}[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/times?modalidade=${encodeURIComponent(modalidade)}`)
+      .then(res => res.json())
+      .then(data => {
+        setTimes(Array.isArray(data) ? data : []);
+        setCabecasDeChave([]);
+      }).catch(() => {});
+  }, [modalidade]);
+
   async function handleGerar() {
     if (!confirm(`Gerar chaveamento para ${modalidade}? Isso apagará o chaveamento anterior desta modalidade.`)) return;
     setLoading("gerar");
@@ -102,7 +114,11 @@ function GerarChaveamentoForm() {
       const res = await fetch("/api/chaveamento/gerar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modalidade, hora_inicio: horaInicio }),
+        body: JSON.stringify({ 
+          modalidade, 
+          hora_inicio: horaInicio,
+          cabecas_de_chave: cabecasDeChave.filter(c => c.time_id)
+        }),
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Erro ao gerar chaveamento."); return; }
@@ -135,7 +151,9 @@ function GerarChaveamentoForm() {
           <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
             <option>Futebol Masculino</option>
             <option>Futebol Feminino</option>
-            <option>Volei Misto</option>
+            <option>Vôlei Masculino</option>
+            <option>Vôlei Feminino</option>
+            <option>Tênis de Mesa</option>
           </select>
         </div>
 
@@ -143,6 +161,38 @@ function GerarChaveamentoForm() {
           <label className="input-label">Hora de Início</label>
           <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
         </div>
+      </div>
+
+      <div style={{ marginBottom: "1.25rem", padding: "1rem", background: "var(--glass-bg,#f9fafb)", borderRadius: "0.5rem", border: "1px solid var(--glass-border,#e5e7eb)" }}>
+        <label className="input-label" style={{ marginBottom: "0.25rem", display: "block" }}>👑 Cabeças de Chave (Opcional)</label>
+        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Escolha times específicos para cair em grupos específicos antes do sorteio.</p>
+        
+        {cabecasDeChave.map((cc, i) => (
+          <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <select className="input" style={{ flex: 2 }} value={cc.time_id} onChange={e => {
+              const newC = [...cabecasDeChave]; newC[i].time_id = e.target.value; setCabecasDeChave(newC);
+            }}>
+              <option value="">Selecione um time...</option>
+              {times.filter(t => !cabecasDeChave.some(c => c.time_id === t.id && c !== cc)).map(t => (
+                <option key={t.id} value={t.id}>{t.nome_base || t.nome_igreja}</option>
+              ))}
+            </select>
+            <select className="input" style={{ flex: 1 }} value={cc.grupo} onChange={e => {
+              const newC = [...cabecasDeChave]; newC[i].grupo = e.target.value; setCabecasDeChave(newC);
+            }}>
+              <option value="Grupo A">Grupo A</option>
+              <option value="Grupo B">Grupo B</option>
+              <option value="Grupo C">Grupo C</option>
+              <option value="Grupo D">Grupo D</option>
+              <option value="Grupo E">Grupo E</option>
+              <option value="Grupo F">Grupo F</option>
+              <option value="Grupo G">Grupo G</option>
+              <option value="Grupo H">Grupo H</option>
+            </select>
+            <button className="btn btn-danger btn-sm" onClick={() => setCabecasDeChave(cabecasDeChave.filter((_, idx) => idx !== i))}>X</button>
+          </div>
+        ))}
+        <button className="btn btn-ghost btn-sm" onClick={() => setCabecasDeChave([...cabecasDeChave, { time_id: "", grupo: "Grupo A" }])}>+ Adicionar Cabeça de Chave</button>
       </div>
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
         <button id="btn-gerar-chaveamento" className="btn btn-primary" onClick={handleGerar} disabled={!!loading}>
@@ -206,3 +256,4 @@ export default function SuperAdminDashboard() {
     </div>
   );
 }
+
