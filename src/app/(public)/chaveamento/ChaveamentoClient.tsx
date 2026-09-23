@@ -35,7 +35,7 @@ function MatchCard({ jogo }: { jogo: any }) {
       )}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", borderBottom:"1px solid var(--glass-border,#e5e7eb)", background: aWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_a_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-          {jogo.time_a?.imagem_url && <img src={jogo.time_a.imagem_url} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover" as const }} />}
+          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeA} {aWins && "🏆"}</span>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
@@ -44,7 +44,7 @@ function MatchCard({ jogo }: { jogo: any }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0.75rem", background: bWins ? "rgba(234,179,8,0.06)" : "transparent", opacity: !jogo.time_b_id ? 0.5 : 1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-          {jogo.time_b?.imagem_url && <img src={jogo.time_b.imagem_url} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover" as const }} />}
+          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit" }}>{nomeB} {bWins && "🏆"}</span>
         </div>
         <span style={{ fontWeight:700, fontSize:"0.875rem", minWidth:"24px", textAlign:"center" as const }}>
