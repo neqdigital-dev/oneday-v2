@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // NOVO ALGORITMO DE AGENDAMENTO (DESCANSO) - Sequência Única
+  // NOVO ALGORITMO DE AGENDAMENTO (DESCANSO) - Sequência Única (Rodízio de Grupos)
   let todosConfrontos: any[] = [];
   for (const grupo of grupos) {
     const { data: timesDoGrupo } = await sb.from("times").select("id").eq("grupo_id", grupo.id);
@@ -88,32 +88,51 @@ export async function POST(req: NextRequest) {
 
   const scheduledMatches: any[] = [];
   const ultimoJogo: Record<string, number> = {}; // { time_id: ultima_posicao }
+  
+  // Organiza confrontos por grupo para fazer o rodízio (A -> B -> C -> D)
+  const confrontosPorGrupo = new Map<number, any[]>();
+  for (const g of grupos) {
+    confrontosPorGrupo.set(g.id, todosConfrontos.filter(c => c.grupo_id === g.id));
+  }
 
-  while (todosConfrontos.length > 0) {
-    let melhorJogo = null;
-    let melhorDistancia = -1;
-    let melhorIdx = -1;
+  let grupoIndex = 0;
+  while (true) {
+    let matchesAgendadosNesteCiclo = 0;
     
-    const currentPos = scheduledMatches.length;
-    
-    for (let idx = 0; idx < todosConfrontos.length; idx++) {
-      const match = todosConfrontos[idx];
-      const distTa = currentPos - (ultimoJogo[match.ta] !== undefined ? ultimoJogo[match.ta] : -999);
-      const distTb = currentPos - (ultimoJogo[match.tb] !== undefined ? ultimoJogo[match.tb] : -999);
+    // Tenta pegar 1 jogo de cada grupo, em ordem
+    for (let i = 0; i < grupos.length; i++) {
+      const g = grupos[(grupoIndex + i) % grupos.length];
+      const matchesDoGrupo = confrontosPorGrupo.get(g.id) || [];
       
-      const minDist = Math.min(distTa, distTb);
+      if (matchesDoGrupo.length === 0) continue;
       
-      if (minDist > melhorDistancia) {
-        melhorDistancia = minDist;
-        melhorJogo = match;
-        melhorIdx = idx;
+      // Escolhe o jogo deste grupo que maximiza o descanso
+      let melhorJogo = null;
+      let melhorDistancia = -1;
+      let melhorIdx = -1;
+      const currentPos = scheduledMatches.length;
+      
+      for (let j = 0; j < matchesDoGrupo.length; j++) {
+        const match = matchesDoGrupo[j];
+        const distTa = currentPos - (ultimoJogo[match.ta] !== undefined ? ultimoJogo[match.ta] : -999);
+        const distTb = currentPos - (ultimoJogo[match.tb] !== undefined ? ultimoJogo[match.tb] : -999);
+        const minDist = Math.min(distTa, distTb);
+        
+        if (minDist > melhorDistancia) {
+          melhorDistancia = minDist;
+          melhorJogo = match;
+          melhorIdx = j;
+        }
       }
+      
+      scheduledMatches.push(melhorJogo);
+      ultimoJogo[melhorJogo.ta] = currentPos;
+      ultimoJogo[melhorJogo.tb] = currentPos;
+      matchesDoGrupo.splice(melhorIdx, 1);
+      matchesAgendadosNesteCiclo++;
     }
     
-    scheduledMatches.push(melhorJogo);
-    ultimoJogo[melhorJogo.ta] = currentPos;
-    ultimoJogo[melhorJogo.tb] = currentPos;
-    todosConfrontos.splice(melhorIdx, 1);
+    if (matchesAgendadosNesteCiclo === 0) break; // Acabaram todos os jogos
   }
 
   // Inserir no Banco de Dados
