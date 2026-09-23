@@ -19,6 +19,7 @@ export default function Navbar() {
           {role === "super_admin" ? <Link href="/super-admin/times" className="navbar-link">Times</Link> : (role === "admin" || role === "lider") ? <Link href="/meus-times" className="navbar-link">Meus Times</Link> : null}
           <Link href="/chaveamento" className="navbar-link">Chaveamento</Link>
           <Link href="/painel" className="navbar-link">Grupos</Link>
+          <Link href="/podio" className="navbar-link">Pódio</Link>
           
           {session ? (
             <button onClick={() => signOut({ callbackUrl: "/" })} className="navbar-link" style={{ background: "rgba(255,255,255,0.1)" }}>Sair</button>

@@ -275,8 +275,6 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
         <>
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>🏆 Fase Eliminatória</h2>
           
-          <Podium p={podium} />
-
           {/* Visual Bracket Layout */}
           <div style={{ overflowX:"auto", paddingBottom:"2rem", WebkitOverflowScrolling:"touch" }}>
             <div style={{ display:"flex", gap:"1.5rem", minWidth:"max-content", padding:"1rem" }}>
@@ -294,6 +292,8 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
               ))}
             </div>
           </div>
+          
+          <Podium p={podium} />
         </>
       )}
 
