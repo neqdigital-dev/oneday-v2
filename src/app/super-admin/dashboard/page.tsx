@@ -16,6 +16,7 @@ export default function SuperAdminDashboard() {
   const [modalidade, setModalidade] = useState("");
   const [numQuadras, setNumQuadras] = useState(2);
   const [horaInicio, setHoraInicio] = useState("08:30");
+  const [tempoJogo, setTempoJogo] = useState(15);
   
   const [qtdTimes, setQtdTimes] = useState(8);
 
@@ -130,7 +131,7 @@ export default function SuperAdminDashboard() {
       const res = await fetch("/api/chaveamento/gerar-jogos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modalidade, num_quadras: numQuadras, hora_inicio: horaInicio })
+        body: JSON.stringify({ modalidade, num_quadras: numQuadras, hora_inicio: horaInicio, tempo_jogo: tempoJogo })
       });
       if (res.ok) {
         const data = await res.json();
@@ -349,7 +350,7 @@ export default function SuperAdminDashboard() {
               </select>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
               <div className="input-group">
                 <label className="input-label">Nº DE QUADRAS</label>
                 <input type="number" className="input" min={1} max={10} value={numQuadras} onChange={e => setNumQuadras(Number(e.target.value))} />
@@ -357,6 +358,10 @@ export default function SuperAdminDashboard() {
               <div className="input-group">
                 <label className="input-label">HORÁRIO DO 1º JOGO</label>
                 <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <label className="input-label">TEMPO DE JOGO</label>
+                <input type="number" className="input" min={5} max={120} value={tempoJogo} onChange={e => setTempoJogo(Number(e.target.value))} />
               </div>
             </div>
 

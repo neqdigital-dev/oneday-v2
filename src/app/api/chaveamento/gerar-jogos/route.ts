@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const sb = supabaseAdmin();
   const reqBody = await req.json();
-  const { modalidade, hora_inicio = "08:30", num_quadras = 1 } = reqBody;
+  const { modalidade, hora_inicio = "08:30", num_quadras = 1, tempo_jogo } = reqBody;
 
   const { data: camp } = await sb.from("campeonatos").select("id").eq("status", "ativo").single();
   if (!camp) return NextResponse.json({ error: "Nenhum campeonato ativo." }, { status: 400 });
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
   const temposQuadras = Array(numQuadras).fill(baseDate.getTime());
   const teamFreeTime: Record<string, number> = {};
   const REST_MINUTES = 15; 
-  const MATCH_DURATION = modalidade.toLowerCase().includes("futebol") ? 30 : 45;
+  const MATCH_DURATION = tempo_jogo ? parseInt(tempo_jogo) : (modalidade.toLowerCase().includes("futebol") ? 30 : 45);
 
   let totalSalvos = 0;
 
