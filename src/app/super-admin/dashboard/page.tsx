@@ -107,6 +107,19 @@ export default function SuperAdminDashboard() {
 
   async function handleClearBracket() {
     if (!confirm("Isso apagará TODO O CHAVEAMENTO desta modalidade. Tem certeza absoluta?")) return;
+    
+    // Future saving logic placeholder
+    const wantsToSave = confirm("Deseja salvar os resultados atuais no histórico antes de limpar? (Sim para Salvar, Cancelar para Apenas Limpar)");
+    if (wantsToSave) {
+      toast("Função de salvar histórico em breve!", { icon: "🚧" });
+    }
+
+    const pwd = window.prompt("Digite a senha de segurança para limpar o chaveamento:");
+    if (pwd !== "740689") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/chaveamento/limpar", {
@@ -122,6 +135,13 @@ export default function SuperAdminDashboard() {
 
   async function handleReagendar() {
     if (!confirm(`Mudar todos os jogos PENDENTES de ${modalidadeReagenda} para ${numQuadrasReagenda} quadra(s) iniciando às ${horaReagenda}?`)) return;
+    
+    const pwd = window.prompt("Digite a senha de segurança para reagendar os jogos (Plano de Chuva):");
+    if (pwd !== "740689") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/chaveamento/reagendar", {
