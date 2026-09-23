@@ -20,11 +20,16 @@ function MatchCard({ jogo }: { jogo: any }) {
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
   const isFutebol = jogo.modalidade?.includes("Futebol");
+  const isVoleiMasc = jogo.modalidade?.includes("Vôlei") && jogo.modalidade?.includes("Masculino");
+  
+  // Show time only if it's Futebol or Volei Masculino
+  const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
+
   return (
     <div style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden", marginBottom:"0.5rem" }}>
-      {jogo.data_hora && (
+      {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
-          <span>🕐 {formatHora(jogo.data_hora)}</span>
+          {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
           {jogo.local && <span>📍 {jogo.local}</span>}
           {jogo.finalizado && <span style={{ color:"#10b981", fontWeight:600 }}>✓ Finalizado</span>}
         </div>
@@ -141,25 +146,24 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
 
       {gruposDoModal.length > 0 && (
         <>
-          <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>📋 Fase de Grupos</h2>
+          <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>📋 Classificação dos Grupos</h2>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))", gap:"1.5rem", marginBottom:"2.5rem" }}>
             {gruposDoModal.map((grupo: any) => {
               const classif = classificacoes.filter((c: any) => c.grupo_id === grupo.id);
-              const timeIds = classif.map((c: any) => c.time_id);
-              const jogosGrupo = jogosFaseGrupos.filter((j: any) => timeIds.includes(j.time_a_id) && timeIds.includes(j.time_b_id)).sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase);
               return (
                 <div key={grupo.id} style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"1rem", overflow:"hidden" }}>
                   <div style={{ padding:"0.75rem 1rem", background:"linear-gradient(135deg, var(--primary,#2563eb), var(--primary-600,#1d4ed8))", color:"#fff", fontWeight:700, fontSize:"0.9375rem" }}>🏟️ {grupo.nome}</div>
                   <div style={{ padding:"0.5rem" }}><TabelaClassificacao classificacoes={classif} /></div>
-                  <div style={{ padding:"0 0.5rem 0.5rem" }}>
-                    <div style={{ fontSize:"0.6875rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", color:"var(--text-muted,#9ca3af)", marginBottom:"0.5rem", paddingLeft:"0.25rem" }}>
-                      Jogos ({jogosGrupo.filter((j: any) => j.finalizado).length}/{jogosGrupo.length})
-                    </div>
-                    {jogosGrupo.map((jogo: any) => (<MatchCard key={jogo.id} jogo={jogo} />))}
-                  </div>
                 </div>
               );
             })}
+          </div>
+
+          <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>⚔️ Jogos da Fase de Grupos</h2>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:"1rem", marginBottom:"3rem" }}>
+            {jogosFaseGrupos.sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase).map((jogo: any) => (
+              <MatchCard key={jogo.id} jogo={jogo} />
+            ))}
           </div>
         </>
       )}
