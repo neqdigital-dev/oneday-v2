@@ -73,7 +73,7 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
   const tdStyle = { padding:"8px", textAlign:"center" as const, fontSize:"14px", border: "1px solid #000", color: "#000", fontWeight: 600 };
   
   return (
-    <table style={{ width:"100%", borderCollapse:"collapse", marginBottom: "20px" }}>
+    <table style={{ width:"100%", borderCollapse:"collapse", marginBottom: "5px" }}>
       <thead>
         <tr>
           <th style={{...thStyle, textAlign:"left", width: "40px"}}>#</th>
@@ -96,15 +96,15 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
           return (
             <tr key={c.id}>
               <td style={{...tdStyle, textAlign:"left"}}>{idx+1}</td>
-              <td style={{...tdStyle, textAlign:"left"}}>{nome}</td>
-              <td style={tdStyle}>{c.jogos_disputados}</td>
-              <td style={tdStyle}>{c.vitorias}</td>
-              {!isTenis && <td style={tdStyle}>{c.empates}</td>}
-              <td style={tdStyle}>{c.derrotas}</td>
-              <td style={tdStyle}>{c.gols_pro}</td>
-              <td style={tdStyle}>{c.gols_contra}</td>
-              <td style={tdStyle}>{saldo > 0 ? `+${saldo}` : saldo}</td>
-              <td style={tdStyle}>{isTenis ? c.vitorias : pts}</td>
+              <td style={{...tdStyle, textAlign:"left", width: "55%"}}>{nome}</td>
+              <td style={tdStyle}> </td>
+              <td style={tdStyle}> </td>
+              {!isTenis && <td style={tdStyle}> </td>}
+              <td style={tdStyle}> </td>
+              <td style={tdStyle}> </td>
+              <td style={tdStyle}> </td>
+              <td style={tdStyle}> </td>
+              <td style={tdStyle}> </td>
             </tr>
           );
         })}
@@ -157,10 +157,10 @@ export default async function ImprimirChaveamento(props: { params: Promise<{ mod
           CLASSIFICAÇÃO DOS GRUPOS - {modalidade.toUpperCase()}
         </h1>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {grupos.map((g: any) => (
             <div key={g.id} style={{ pageBreakInside: "avoid" }}>
-              <h2 style={{ fontSize: "18px", marginBottom: "10px", background: "#000", color: "#fff", padding: "8px 12px", borderRadius: "5px" }}>{g.nome}</h2>
+              <h2 style={{ fontSize: "16px", marginBottom: "5px", background: "#000", color: "#fff", padding: "4px 8px", borderRadius: "5px" }}>{g.nome}</h2>
               <TabelaClassificacao classificacoes={classificacoes?.filter((c:any) => c.grupo_id === g.id) || []} modalidade={modalidade} />
             </div>
           ))}
