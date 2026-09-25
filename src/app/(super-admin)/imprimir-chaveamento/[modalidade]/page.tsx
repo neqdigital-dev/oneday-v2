@@ -152,7 +152,7 @@ export default async function ImprimirChaveamento(props: { params: Promise<{ mod
       </div>
 
       {/* PAGE 2+: JOGOS POR GRUPO */}
-      <div className="print-wrap page-break">
+      <div className="print-wrap">
         <h1 className="doc-title">Jogos da Fase de Grupos — {modalidade}</h1>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "start" }}>
           {grupos.map((g: any) => (
