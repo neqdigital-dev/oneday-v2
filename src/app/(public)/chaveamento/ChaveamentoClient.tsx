@@ -15,7 +15,7 @@ function getModalidadeIcon(mod: string) {
   return "🏅";
 }
 
-function MatchCard({ jogo }: { jogo: any }) {
+function MatchCard({ jogo, grupoA, grupoB }: { jogo: any, grupoA?: string, grupoB?: string }) {
   const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
   const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
@@ -38,6 +38,7 @@ function MatchCard({ jogo }: { jogo: any }) {
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              {grupoA && <span style={{ fontSize:"0.65rem", color:"var(--brand-500,#3b82f6)", fontWeight:700 }}>{grupoA}</span>}
             <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeA} {aWins && "🏆"}</span>
             {distritoA && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoA}</span>}
           </div>
@@ -50,6 +51,7 @@ function MatchCard({ jogo }: { jogo: any }) {
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              {grupoB && <span style={{ fontSize:"0.65rem", color:"var(--brand-500,#3b82f6)", fontWeight:700 }}>{grupoB}</span>}
             <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeB} {bWins && "🏆"}</span>
             {distritoB && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoB}</span>}
           </div>
@@ -353,9 +355,14 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
                 return timeAGrupo === filtroGrupo || timeBGrupo === filtroGrupo;
               })
               .sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase)
-              .map((jogo: any) => (
-                <MatchCard key={jogo.id} jogo={jogo} />
-            ))}
+              .map((jogo: any) => {
+                  const gA = classificacoes.find((c: any) => c.time_id === jogo.time_a_id);
+                  const gB = classificacoes.find((c: any) => c.time_id === jogo.time_b_id);
+                  const nomeGrpA = gruposDoModal.find((g: any) => g.id === gA?.grupo_id)?.nome;
+                  const nomeGrpB = gruposDoModal.find((g: any) => g.id === gB?.grupo_id)?.nome;
+                  return <MatchCard key={jogo.id} jogo={jogo} grupoA={nomeGrpA} grupoB={nomeGrpB} />;
+                }
+            )}
           </div>
         </>
       )}

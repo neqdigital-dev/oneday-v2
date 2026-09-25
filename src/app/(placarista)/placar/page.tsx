@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 
 function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () => void, groupA?: string, groupB?: string }) {
   const isFut = jogo.modalidade?.includes("Futebol");
@@ -47,6 +47,8 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
 
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "Time A";
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "Time B";
+  const labelA = groupA ? groupA : "";
+  const labelB = groupB ? groupB : "";
 
   return (
     <div className="card card-padded">
