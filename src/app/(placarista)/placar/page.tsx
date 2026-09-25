@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { supabase } from "@/lib/supabaseClient";
 
-function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
+function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () => void, groupA?: string, groupB?: string }) {
   const isFut = jogo.modalidade?.includes("Futebol");
   const [gA, setGolsA] = useState(jogo.gols_time_a ?? 0);
   const [gB, setGolsB] = useState(jogo.gols_time_b ?? 0);
@@ -61,7 +62,9 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
         <div style={{ textAlign: "center" }}>
           <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
-          <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeA}</div>
+          <div style={{ fontWeight: "700", fontSize: "0.9375rem" }}>{nomeA}</div>
+          {labelA && <div style={{ fontSize: "0.7rem", color: "var(--brand-500,#3b82f6)", fontWeight: "600", marginBottom: "0.5rem" }}>{labelA}</div>}
+          {!labelA && <div style={{ marginBottom: "0.75rem" }}></div>}
           {isFut ? (
             <input type="number" min="0" value={gA} onChange={e => setGolsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           ) : (
@@ -76,7 +79,9 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
 
         <div style={{ textAlign: "center" }}>
           <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
-          <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeB}</div>
+          <div style={{ fontWeight: "700", fontSize: "0.9375rem" }}>{nomeB}</div>
+          {labelB && <div style={{ fontSize: "0.7rem", color: "var(--brand-500,#3b82f6)", fontWeight: "600", marginBottom: "0.5rem" }}>{labelB}</div>}
+          {!labelB && <div style={{ marginBottom: "0.75rem" }}></div>}
           {isFut ? (
             <input type="number" min="0" value={gB} onChange={e => setGolsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           ) : (
@@ -103,6 +108,7 @@ export default function PlacarPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Todos");
   const [modalidadesAtivas, setModalidadesAtivas] = useState<string[]>(["Todos"]);
+  const [teamGroups, setTeamGroups] = useState<Record<string, string>>({});
 
   async function loadData() {
     setLoading(true);
@@ -220,7 +226,7 @@ export default function PlacarPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).map(jogo => (
-                <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadData} />
+                <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadData} groupA={teamGroups[jogo.time_a_id]} groupB={teamGroups[jogo.time_b_id]} />
               ))}
             </div>
           )}
