@@ -137,6 +137,46 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
   );
 }
 
+function LegendaClassificacao({ modalidade }: { modalidade: string }) {
+  const isTenis = modalidade.includes("Tênis");
+  const isVolei = modalidade.includes("Vôlei");
+  
+  return (
+    <div style={{ background: "var(--glass-bg,#fff)", border: "1px dashed var(--glass-border,#cbd5e1)", borderRadius: "1rem", padding: "1.25rem", display: "flex", flexDirection: "column", justifyContent: "center", alignSelf: "start" }}>
+      <h3 style={{ fontSize: "0.8125rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-secondary,#6b7280)", marginBottom: "0.75rem" }}>📖 Legenda</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted,#64748b)" }}>
+        <div><b>J</b> = Jogos</div>
+        <div><b>V</b> = Vitórias</div>
+        {!isTenis && <div><b>E</b> = Empates</div>}
+        <div><b>D</b> = Derrotas</div>
+        
+        {isTenis ? (
+          <>
+            <div><b>PM</b> = Pontos Marcados</div>
+            <div><b>PS</b> = Pontos Sofridos</div>
+            <div><b>SP</b> = Saldo de Pontos</div>
+            <div><b>Pts</b> = Vitórias</div>
+          </>
+        ) : isVolei ? (
+          <>
+            <div><b>GP</b> = Sets Pró</div>
+            <div><b>GC</b> = Sets Contra</div>
+            <div><b>SG</b> = Saldo de Sets</div>
+            <div><b>Pts</b> = Pontos</div>
+          </>
+        ) : (
+          <>
+            <div><b>GP</b> = Gols Pró</div>
+            <div><b>GC</b> = Gols Contra</div>
+            <div><b>SG</b> = Saldo de Gols</div>
+            <div><b>Pts</b> = Pontos</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Podium({ p }: { p: any }) {
   if (!p) return null;
   return (
@@ -296,10 +336,11 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
                 <div key={grupo.id} style={{ background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"1rem", overflow:"hidden" }}>
                   <div style={{ padding:"0.75rem 1rem", background:"linear-gradient(135deg, var(--primary,#2563eb), var(--primary-600,#1d4ed8))", color:"#fff", fontWeight:700, fontSize:"0.9375rem" }}>🏟️ {grupo.nome}</div>
                   <div style={{ padding:"0.5rem" }}><TabelaClassificacao classificacoes={classif} modalidade={activeTab} /></div>
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                );
+              })}
+              {(!filtroGrupo || gruposDoModal.length === 0) && <LegendaClassificacao modalidade={activeTab} />}
+            </div>
 
           <h2 style={{ fontSize:"0.8125rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--text-secondary,#6b7280)", marginBottom:"1.25rem" }}>⚔️ Jogos da Fase de Grupos</h2>
 
