@@ -60,13 +60,24 @@ export async function POST(req: NextRequest) {
     confrontosPorGrupo.set(g.id, todosConfrontos.filter(c => c.grupo_id === g.id));
   }
 
-  let grupoIndex = 0;
+  let roundIndex = 0;
   while (true) {
     let matchesAgendadosNesteCiclo = 0;
     
+    let gruposNestaRodada = [...grupos];
+    // Se for Vôlei Masculino e rodada ímpar (ex: 2ª rodada), inverte os pares de grupos para trocar de quadra
+    if (modalidade === "Vôlei Masculino" && roundIndex % 2 === 1) {
+      if (gruposNestaRodada.length >= 2) {
+        let temp = gruposNestaRodada[0]; gruposNestaRodada[0] = gruposNestaRodada[1]; gruposNestaRodada[1] = temp;
+      }
+      if (gruposNestaRodada.length >= 4) {
+        let temp = gruposNestaRodada[2]; gruposNestaRodada[2] = gruposNestaRodada[3]; gruposNestaRodada[3] = temp;
+      }
+    }
+
     // Tenta pegar 1 jogo de cada grupo, em ordem
-    for (let i = 0; i < grupos.length; i++) {
-      const g = grupos[(grupoIndex + i) % grupos.length];
+    for (let i = 0; i < gruposNestaRodada.length; i++) {
+      const g = gruposNestaRodada[i];
       const matchesDoGrupo = confrontosPorGrupo.get(g.id) || [];
       
       if (matchesDoGrupo.length === 0) continue;
@@ -98,6 +109,7 @@ export async function POST(req: NextRequest) {
     }
     
     if (matchesAgendadosNesteCiclo === 0) break;
+    roundIndex++;
   }
 
   // Agendamento
@@ -135,13 +147,18 @@ export async function POST(req: NextRequest) {
     const dataHora = new Date(earliestStartTime);
     const endTime = earliestStartTime + MATCH_DURATION * 60000;
 
+    let assignedLocal = numQuadras === 1 ? "Quadra 1" : "Quadra " + (bestQuadraIdx + 1);
+    if ((modalidade === "Vôlei Masculino" || modalidade === "Tênis de Mesa") && numQuadras === 2) {
+      assignedLocal = i % 2 === 0 ? "Quadra 1" : "Quadra 2";
+    }
+
     gamesToInsert.push({
       campeonato_id: campId,
       modalidade,
       fase: "Fase de Grupos",
       time_a_id: m.ta,
       time_b_id: m.tb,
-      local: numQuadras === 1 ? "Quadra 1" : "Quadra " + (bestQuadraIdx + 1),
+      local: assignedLocal,
       data_hora: dataHora.toISOString(),
       finalizado: false,
       ordem_na_fase: i + 1

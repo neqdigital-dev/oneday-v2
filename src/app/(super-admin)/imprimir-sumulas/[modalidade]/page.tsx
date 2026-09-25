@@ -20,8 +20,18 @@ export default async function ImprimirSumulas(props: { params: Promise<{ modalid
     .eq("campeonato_id", camp.id)
     .eq("modalidade", modalidade);
     
-  const fasesUnicas = Array.from(new Set((todasFases || []).map((j: any) => j.fase))).filter(Boolean);
+  let fasesUnicas = Array.from(new Set((todasFases || []).map((j: any) => j.fase))).filter(Boolean);
   if (!fasesUnicas.includes("Fase de Grupos")) fasesUnicas.unshift("Fase de Grupos");
+
+  const order = ["Fase de Grupos", "Quartas de Final", "Semifinal", "Final"];
+  fasesUnicas.sort((a, b) => {
+    const idxA = order.indexOf(a);
+    const idxB = order.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
 
   const { data: jogos } = await sb.from("games")
     .select("*, time_a:times!games_time_a_id_fkey(*), time_b:times!games_time_b_id_fkey(*)")
