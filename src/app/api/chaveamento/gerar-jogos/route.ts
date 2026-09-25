@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 function getTempoJanela(modalidade: string): number {
   const mod = modalidade.toLowerCase();
-  if (mod.includes("futebol")) return 30; 
+  if (mod.includes("futebol")) return 20; 
   if (mod.includes("vôlei") && mod.includes("feminino")) return 15; 
   if (mod.includes("vôlei") && mod.includes("masculino")) return 18; 
   if (mod.includes("tênis")) return 15; 
-  return 30;
+  return 20;
 }
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
