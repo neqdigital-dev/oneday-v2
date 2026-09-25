@@ -2,7 +2,6 @@
 import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { FaCheckCircle, FaRegCircle } from "react-icons/fa";
 
 export default function CheckinClient({ times }: { times: any[] }) {
   const modalidades = useMemo(() => {
@@ -147,7 +146,7 @@ export default function CheckinClient({ times }: { times: any[] }) {
                         <span style={{ fontSize: "0.85rem", color: isChecked ? "#047857" : "#64748b" }}>CPF: {j.cpf || "Não informado"}</span>
                       </div>
                       <div style={{ fontSize: "1.5rem", color: isChecked ? "#10b981" : "#cbd5e1" }}>
-                        {isChecked ? <FaCheckCircle /> : <FaRegCircle />}
+                        {isChecked ? "✅" : "⚪"}
                       </div>
                     </div>
                   );

@@ -25,7 +25,7 @@ export default async function PainelAdminPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   const role = (session.user as any).role;
-  if (role !== "super_admin") redirect("/acesso-negado");
+  if (role !== "super_admin" && role !== "secretaria") redirect("/acesso-negado");
 
   const data = await getData();
 

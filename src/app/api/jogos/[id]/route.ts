@@ -5,7 +5,7 @@ import { logAction } from "@/lib/audit";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!session?.user || !["super_admin", "placarista"].includes((session.user as any).role)) {
+  if (!session?.user || !["super_admin", "placarista", "secretaria"].includes((session.user as any).role)) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
@@ -177,6 +177,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
+      if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
       if (sgB !== sgA) return sgB - sgA;
@@ -193,6 +194,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
+      if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
       if (sgB !== sgA) return sgB - sgA;
@@ -206,6 +208,7 @@ async function gerarMataMataAutomatico(sb: any, campeonato_id: string, modalidad
     const ptsA = (a.vitorias * 3) + a.empates;
     const ptsB = (b.vitorias * 3) + b.empates;
     if (ptsB !== ptsA) return ptsB - ptsA;
+    if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
     const sgA = a.gols_pro - a.gols_contra;
     const sgB = b.gols_pro - b.gols_contra;
     if (sgB !== sgA) return sgB - sgA;

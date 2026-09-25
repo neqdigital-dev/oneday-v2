@@ -69,6 +69,7 @@ function TabelaClassificacao({ classificacoes }: { classificacoes: any[] }) {
     const ptA = a.vitorias * 3 + a.empates;
     const ptB = b.vitorias * 3 + b.empates;
     if (ptB !== ptA) return ptB - ptA;
+      if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
     const sgA = a.gols_pro - a.gols_contra;
     const sgB = b.gols_pro - b.gols_contra;
     if (sgB !== sgA) return sgB - sgA;

@@ -30,11 +30,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         );
         if (!isValid) return null;
 
+        let finalRole = user.role;
+        if (user.username === "secretaria") finalRole = "secretaria";
+
         return {
           id: user.id,
           email: user.email,
           name: user.username,
-          role: user.role as UserRole,
+          role: finalRole as UserRole,
         };
       },
     }),

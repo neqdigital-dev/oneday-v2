@@ -16,6 +16,7 @@ function ClassificacaoTable({ grupo, classificacoes }: { grupo: any; classificac
       const ptA = getPontosClassificacao(a.vitorias, a.empates);
       const ptB = getPontosClassificacao(b.vitorias, b.empates);
       if (ptB !== ptA) return ptB - ptA;
+        if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
       return getSaldoGols(b.gols_pro, b.gols_contra) - getSaldoGols(a.gols_pro, a.gols_contra);
     });
 

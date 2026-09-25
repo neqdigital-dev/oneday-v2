@@ -20,11 +20,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/acesso-negado", req.url));
 
   // Admin and above
-  if (pathname.startsWith("/admin") && !["super_admin", "admin"].includes(role))
+  if (pathname.startsWith("/admin") && !["super_admin", "admin", "secretaria"].includes(role))
     return NextResponse.redirect(new URL("/acesso-negado", req.url));
 
   // Placarista and above
-  if (pathname.startsWith("/placar") && !["super_admin", "admin", "placarista"].includes(role))
+  if (pathname.startsWith("/placar") && !["super_admin", "admin", "placarista", "secretaria"].includes(role))
     return NextResponse.redirect(new URL("/acesso-negado", req.url));
 
   return NextResponse.next();

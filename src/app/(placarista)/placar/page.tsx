@@ -60,7 +60,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
         <div style={{ textAlign: "center" }}>
-          {jogo.time_a?.imagem_url && <img src={jogo.time_a.imagem_url} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
+          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
           <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeA}</div>
           {isFut ? (
             <input type="number" min="0" value={gA} onChange={e => setGolsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
@@ -75,7 +75,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
         <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "1.5rem", fontWeight: "300" }}>×</div>
 
         <div style={{ textAlign: "center" }}>
-          {jogo.time_b?.imagem_url && <img src={jogo.time_b.imagem_url} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
+          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
           <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeB}</div>
           {isFut ? (
             <input type="number" min="0" value={gB} onChange={e => setGolsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
@@ -135,6 +135,36 @@ export default function PlacarPage() {
   }
 	 
   
+
+  async function handleGerarMataMata() {
+    if (activeTab === "Todos") {
+      toast.error("Selecione uma modalidade específica para gerar o mata-mata.");
+      return;
+    }
+    const pwd = window.prompt(`Digite a senha de segurança para gerar o mata-mata de ${activeTab}:`);
+    if (pwd !== "3434") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/mata-mata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade: activeTab })
+      });
+      if (res.ok) {
+        toast.success(`Mata-mata gerado com sucesso para ${activeTab}!`);
+        loadData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao gerar Mata-Mata");
+      }
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
   useEffect(() => { loadData(); }, []);
 
   return (
@@ -146,7 +176,17 @@ export default function PlacarPage() {
             <div>
               <h1 className="heading-lg">🎯 Inserir Placar</h1>
               <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>{jogos.length} jogos pendentes</p>
-            </div>
+  
+            {activeTab !== "Todos" && (
+              <button 
+                onClick={handleGerarMataMata} 
+                className="btn btn-sm" 
+                style={{ marginLeft: "auto", background: "#f59e0b", color: "#fff", border: "none", fontWeight: "bold" }}
+              >
+                🏆 Gerar Mata-Mata
+              </button>
+            )}
+          </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
               <Link href="/checkin" className="btn btn-primary btn-sm" style={{ background: "#e2e8f0", color: "#1e293b", border: "none" }}>✅ Check-in</Link>
               <Link href="/sumulas" className="btn btn-primary btn-sm">🖨️ Súmulas</Link>

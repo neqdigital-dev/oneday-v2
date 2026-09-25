@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   const role = (session.user as any).role;
-  if (role !== "super_admin") return NextResponse.json({ error: "Apenas Super Admin." }, { status: 403 });
+  if (!["super_admin", "placarista", "secretaria"].includes(role)) return NextResponse.json({ error: "Apenas Super Admin." }, { status: 403 });
 
   const sb = supabaseAdmin();
   const { modalidade } = await req.json();
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
+      if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
       if (sgB !== sgA) return sgB - sgA;
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
       const ptsA = (a.vitorias * 3) + a.empates;
       const ptsB = (b.vitorias * 3) + b.empates;
       if (ptsB !== ptsA) return ptsB - ptsA;
+      if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
       if (sgB !== sgA) return sgB - sgA;
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
     const ptsA = (a.vitorias * 3) + a.empates;
     const ptsB = (b.vitorias * 3) + b.empates;
     if (ptsB !== ptsA) return ptsB - ptsA;
+    if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
     const sgA = a.gols_pro - a.gols_contra;
     const sgB = b.gols_pro - b.gols_contra;
     if (sgB !== sgA) return sgB - sgA;
@@ -92,22 +95,36 @@ export async function POST(req: NextRequest) {
   });
 
   let totalCriados = 0;
+  let localName = "";
+  if (modalidade.includes("Futebol")) localName = "Quadra 1";
+  if (modalidade.includes("Vôlei")) localName = "Quadra 1";
+  if (modalidade.includes("Tênis de Mesa")) localName = "Mesa 1";
   let matches: any[] = [];
   
   if (rankingGeral.length === 8) {
     // QUARTAS DE FINAL -> SEMIFINAL -> FINAL
     // placeholder games first to get IDs
-    const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
+    const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1, local: localName }).select().single();
     
-    const { data: semi1 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 1, proximo_jogo_id: final?.id }).select().single();
-    const { data: semi2 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 2, proximo_jogo_id: final?.id }).select().single();
+    const { data: semi1 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 1, proximo_jogo_id: final?.id, local: localName }).select().single();
+    const { data: semi2 } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Semifinal", ordem_na_fase: 2, proximo_jogo_id: final?.id, local: localName }).select().single();
 
-    const qMatches = [
-      { tA: rankingGeral[0].time_id, tB: rankingGeral[7].time_id, next: semi1?.id },
-      { tA: rankingGeral[3].time_id, tB: rankingGeral[4].time_id, next: semi1?.id },
-      { tA: rankingGeral[2].time_id, tB: rankingGeral[5].time_id, next: semi2?.id },
-      { tA: rankingGeral[1].time_id, tB: rankingGeral[6].time_id, next: semi2?.id },
-    ];
+    let qMatches = [];
+    if (grupos.length === 4 && classificados.length === 8) {
+      qMatches = [
+        { tA: classificados[0].time_id, tB: classificados[3].time_id, next: semi1?.id },
+        { tA: classificados[2].time_id, tB: classificados[1].time_id, next: semi2?.id },
+        { tA: classificados[4].time_id, tB: classificados[7].time_id, next: semi1?.id },
+        { tA: classificados[6].time_id, tB: classificados[5].time_id, next: semi2?.id },
+      ];
+    } else {
+      qMatches = [
+        { tA: rankingGeral[0].time_id, tB: rankingGeral[7].time_id, next: semi1?.id },
+        { tA: rankingGeral[3].time_id, tB: rankingGeral[4].time_id, next: semi1?.id },
+        { tA: rankingGeral[2].time_id, tB: rankingGeral[5].time_id, next: semi2?.id },
+        { tA: rankingGeral[1].time_id, tB: rankingGeral[6].time_id, next: semi2?.id },
+      ];
+    }
 
     for (let i = 0; i < 4; i++) {
       await sb.from("games").insert({
@@ -117,13 +134,14 @@ export async function POST(req: NextRequest) {
         time_a_id: qMatches[i].tA,
         time_b_id: qMatches[i].tB,
         ordem_na_fase: i + 1,
-        proximo_jogo_id: qMatches[i].next
+        proximo_jogo_id: qMatches[i].next,
+        local: localName
       });
     }
     totalCriados = 8;
   } else if (rankingGeral.length === 4) {
     // SEMIFINAL -> FINAL
-    const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1 }).select().single();
+    const { data: final } = await sb.from("games").insert({ campeonato_id: camp.id, modalidade, fase: "Final", ordem_na_fase: 1, local: localName }).select().single();
 
     const sMatches = [
       { tA: rankingGeral[0].time_id, tB: rankingGeral[3].time_id, next: final?.id },
@@ -138,7 +156,8 @@ export async function POST(req: NextRequest) {
         time_a_id: sMatches[i].tA,
         time_b_id: sMatches[i].tB,
         ordem_na_fase: i + 1,
-        proximo_jogo_id: sMatches[i].next
+        proximo_jogo_id: sMatches[i].next,
+        local: localName
       });
     }
     totalCriados = 4;

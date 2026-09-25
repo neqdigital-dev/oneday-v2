@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   // Verify ownership
   const role = (session.user as any).role;
   const userId = (session.user as any).id;
-  if (!["super_admin", "admin"].includes(role)) {
+  if (!["super_admin", "admin", "secretaria"].includes(role)) {
     const { data: time } = await sb.from("times").select("lider_id, campeonato_id, cadastros_encerrados").eq("id", time_id).single();
     if (!time) return NextResponse.json({ error: "Time não encontrado." }, { status: 404 });
     if (time.lider_id !== userId) return NextResponse.json({ error: "Sem permissão." }, { status: 403 });

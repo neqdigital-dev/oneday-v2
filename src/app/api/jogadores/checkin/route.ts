@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   
   const role = (session.user as any).role;
   // Placaristas ou Super Admins podem fazer checkin
-  if (role !== "placarista" && role !== "super_admin") {
+  if (role !== "placarista" && role !== "super_admin" && role !== "secretaria") {
     return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
 

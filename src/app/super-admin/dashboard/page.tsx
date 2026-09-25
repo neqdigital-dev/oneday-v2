@@ -144,6 +144,31 @@ export default function SuperAdminDashboard() {
     setLoading(false);
   }
 
+
+  async function handleZerarPlacares() {
+    const pwd = window.prompt("Digite a senha de segurança para ZERAR OS PLACARES (os jogos e horários serão mantidos):");
+    if (pwd !== "740689") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/zerar-placares", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) {
+        toast.success("Placares zerados! Os jogos da fase de grupos foram mantidos intactos.");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao zerar");
+      }
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
   async function handleClearJogos() {
     const pwd = window.prompt("Digite a senha de segurança para zerar APENAS A TABELA DE JOGOS:");
     if (pwd !== "740689") {
@@ -187,6 +212,27 @@ export default function SuperAdminDashboard() {
       });
       if (res.ok) toast.success("Chaveamento limpo com sucesso!");
       else toast.error("Erro ao limpar chaveamento");
+    } catch (e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
+
+  async function handleGerarMataMata() {
+    if (!modalidade) return;
+    if (!confirm("Isso irá apagar APENAS os jogos da fase eliminatória (Mata-Mata) e gerar os novos confrontos com base na classificação atual. Tem certeza?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/mata-mata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) {
+        toast.success("Mata-Mata gerado com sucesso!");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao gerar Mata-Mata");
+      }
     } catch (e) { toast.error("Erro interno"); }
     setLoading(false);
   }
@@ -390,8 +436,16 @@ export default function SuperAdminDashboard() {
               </button>
             </div>
 
+
+            <div style={{ padding: "1rem", background: "rgba(245, 158, 11, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#f59e0b" }}>PASSO 3: GERAR MATA-MATA</span>
+              <button onClick={handleGerarMataMata} className="btn" disabled={loading || !modalidade} style={{ width: "100%", backgroundColor: "#f59e0b", color: "#fff", borderColor: "#f59e0b" }}>
+                {loading ? "Gerando..." : "🏆 Gerar Fase Eliminatória"}
+              </button>
+            </div>
+
             <div style={{ padding: "1rem", background: "rgba(139, 92, 246, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#8b5cf6" }}>PASSO 3: IMPRESSÃO</span>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#8b5cf6" }}>PASSO 4: IMPRESSÃO</span>
               <a href={`/imprimir-sumulas/${encodeURIComponent(modalidade)}`} target="_blank" className="btn btn-primary" style={{ width: "100%", backgroundColor: "#8b5cf6", borderColor: "#8b5cf6", textAlign: "center", textDecoration: "none", pointerEvents: !modalidade ? "none" : "auto", opacity: !modalidade ? 0.5 : 1 }}>
                 🖨️ Imprimir Súmulas (PDF)
               </a>
