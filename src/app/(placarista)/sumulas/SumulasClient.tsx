@@ -67,6 +67,25 @@ export default function SumulasClient({ data }: { data: SumulasData[] }) {
               <p style={{ color: "#64748b" }}>Nenhum jogo gerado para esta modalidade ainda.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <a 
+                  href={`/imprimir-chaveamento/${encodeURIComponent(selectedMod)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center", 
+                    padding: "15px", borderRadius: "8px", cursor: "pointer",
+                    border: "2px dashed #3b82f6", background: "rgba(59, 130, 246, 0.05)",
+                    textDecoration: "none", color: "#1e293b", transition: "all 0.2s"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ fontWeight: "bold", color: "#3b82f6" }}>📊 IMPRIMIR CHAVEAMENTO GERAL (A4)</span>
+                  </div>
+                  <FaChevronRight style={{ color: "#3b82f6" }} />
+                </a>
+                
+                <hr style={{ margin: "5px 0", borderTop: "1px solid #e2e8f0" }} />
+
                 {modData.fases.map(fase => (
                   <a 
                     key={fase}
