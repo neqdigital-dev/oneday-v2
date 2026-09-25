@@ -7,104 +7,51 @@ function formatHora(dateStr: string | null) {
   return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 }
 
-function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: string, grupoB?: string, isMataMata?: boolean }) {
-  const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
-  const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
-  const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
-  const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
-  const isFutebol = jogo.modalidade?.includes("Futebol");
-  const showTime = !!jogo.data_hora;
-
-  return (
-    <div style={{ width: "100%", flexShrink: 0, background:"#fff", border:"2px solid #000", borderRadius:"8px", overflow:"hidden", marginBottom: "15px", pageBreakInside: "avoid" }}>
-      {(showTime || jogo.local || jogo.finalizado) && (
-        <div style={{ padding:"5px 10px", borderBottom:"1px solid #000", fontSize:"12px", color:"#000", display:"flex", gap:"15px", background: "#f0f0f0", fontWeight: "bold" }}>
-          <span>#Jogo {jogo.ordem_na_fase || "?"}</span>
-          {grupoA && <span>{grupoA}</span>}
-          {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
-          {jogo.local && <span>📍 {jogo.local}</span>}
-        </div>
-      )}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 10px", borderBottom:"1px solid #000" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:"10px", overflow:"hidden", flex: 1 }}>
-          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <span style={{ fontWeight: aWins ? 800 : 600, fontSize:"14px", color: "#000" }}>{nomeA} {aWins && "🏆"}</span>
-          </div>
-        </div>
-        <span style={{ fontWeight:800, fontSize:"16px", minWidth:"30px", textAlign:"center" }}>
-          {jogo.finalizado ? (isFutebol ? jogo.gols_time_a ?? "—" : jogo.sets_vencidos_a ?? "—") : "—"}
-        </span>
-      </div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 10px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:"10px", overflow:"hidden", flex: 1 }}>
-          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <span style={{ fontWeight: bWins ? 800 : 600, fontSize:"14px", color: "#000" }}>{nomeB} {bWins && "🏆"}</span>
-          </div>
-        </div>
-        <span style={{ fontWeight:800, fontSize:"16px", minWidth:"30px", textAlign:"center" }}>
-          {jogo.finalizado ? (isFutebol ? jogo.gols_time_b ?? "—" : jogo.sets_vencidos_b ?? "—") : "—"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: any[], modalidade: string }) {
   const isTenis = modalidade.includes("Tênis");
   const sorted = [...classificacoes].sort((a, b) => {
     if (isTenis) {
       if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
-      const sgA = a.gols_pro - a.gols_contra;
-      const sgB = b.gols_pro - b.gols_contra;
-      if (sgB !== sgA) return sgB - sgA;
-      return b.gols_pro - a.gols_pro;
+      return (b.gols_pro - b.gols_contra) - (a.gols_pro - a.gols_contra);
     }
     const ptA = a.vitorias * 3 + a.empates;
     const ptB = b.vitorias * 3 + b.empates;
     if (ptB !== ptA) return ptB - ptA;
     if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
-    const sgA = a.gols_pro - a.gols_contra;
-    const sgB = b.gols_pro - b.gols_contra;
-    if (sgB !== sgA) return sgB - sgA;
-    return b.gols_pro - a.gols_pro;
+    return (b.gols_pro - b.gols_contra) - (a.gols_pro - a.gols_contra);
   });
 
-  const thStyle = { padding:"8px", textAlign:"center" as const, fontWeight:800, color:"#000", border: "1px solid #000", fontSize:"12px", background: "#f0f0f0" };
-  const tdStyle = { padding:"8px", textAlign:"center" as const, fontSize:"14px", border: "1px solid #000", color: "#000", fontWeight: 600 };
-  
   return (
-    <table style={{ width:"100%", borderCollapse:"collapse", marginBottom: "5px" }}>
+    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
       <thead>
-        <tr>
-          <th style={{...thStyle, textAlign:"left", width: "40px"}}>#</th>
-          <th style={{...thStyle, textAlign:"left"}}>Time</th>
-          <th style={thStyle}>J</th>
-          <th style={thStyle}>V</th>
-          {!isTenis && <th style={thStyle}>E</th>}
-          <th style={thStyle}>D</th>
-          <th style={thStyle}>{isTenis ? "PM" : "GP"}</th>
-          <th style={thStyle}>{isTenis ? "PS" : "GC"}</th>
-          <th style={thStyle}>{isTenis ? "SP" : "SG"}</th>
-          <th style={thStyle}>{isTenis ? "Pts" : "Pts"}</th>
+        <tr style={{ background: "#e0e0e0" }}>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "left", width: "20px" }}>#</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "left" }}>Time</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "25px" }}>J</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "25px" }}>V</th>
+          {!isTenis && <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "25px" }}>E</th>}
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "25px" }}>D</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "35px" }}>{isTenis ? "PM" : "GP"}</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "35px" }}>{isTenis ? "PS" : "GC"}</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "35px" }}>{isTenis ? "SP" : "SG"}</th>
+          <th style={{ border: "1px solid #888", padding: "4px 6px", textAlign: "center", width: "35px" }}>Pts</th>
         </tr>
       </thead>
       <tbody>
         {sorted.map((c: any, idx: number) => {
-          const pts = c.vitorias * 3 + c.empates;
-          const saldo = c.gols_pro - c.gols_contra;
           const nome = c.time?.nome_base || c.time?.nome_igreja || "—";
           return (
-            <tr key={c.id}>
-              <td style={{...tdStyle, textAlign:"left"}}>{idx+1}</td>
-              <td style={{...tdStyle, textAlign:"left", width: "55%"}}>{nome}</td>
-              <td style={tdStyle}> </td>
-              <td style={tdStyle}> </td>
-              {!isTenis && <td style={tdStyle}> </td>}
-              <td style={tdStyle}> </td>
-              <td style={tdStyle}> </td>
-              <td style={tdStyle}> </td>
-              <td style={tdStyle}> </td>
-              <td style={tdStyle}> </td>
+            <tr key={c.id} style={{ background: idx % 2 === 0 ? "#fff" : "#fafafa" }}>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center", fontWeight: "bold" }}>{idx + 1}</td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", fontWeight: 600 }}>{nome}</td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              {!isTenis && <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>}
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
+              <td style={{ border: "1px solid #ccc", padding: "5px 6px", textAlign: "center" }}> </td>
             </tr>
           );
         })}
@@ -113,73 +60,109 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
   );
 }
 
+function JogoCard({ jogo, grupoNome }: { jogo: any, grupoNome?: string }) {
+  const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
+  const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
+  const showTime = !!jogo.data_hora;
+  return (
+    <div style={{ border: "1.5px solid #333", borderRadius: "6px", overflow: "hidden", marginBottom: "8px", pageBreakInside: "avoid", fontSize: "11px" }}>
+      <div style={{ background: "#333", color: "#fff", padding: "3px 8px", display: "flex", gap: "12px", fontWeight: "bold", fontSize: "10px" }}>
+        <span>#Jogo {jogo.ordem_na_fase || "?"}</span>
+        {grupoNome && <span>{grupoNome}</span>}
+        {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
+        {jogo.local && <span>📍 {jogo.local}</span>}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", padding: "5px 8px", borderBottom: "1px solid #ddd", gap: "8px" }}>
+        <span style={{ flex: 1, fontWeight: 600 }}>{nomeA}</span>
+        <span style={{ width: "30px", height: "22px", border: "1.5px solid #333", borderRadius: "3px", display: "inline-block" }}></span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", padding: "5px 8px", gap: "8px" }}>
+        <span style={{ flex: 1, fontWeight: 600 }}>{nomeB}</span>
+        <span style={{ width: "30px", height: "22px", border: "1.5px solid #333", borderRadius: "3px", display: "inline-block" }}></span>
+      </div>
+    </div>
+  );
+}
+
 export default async function ImprimirChaveamento(props: { params: Promise<{ modalidade: string }> }) {
   const params = await props.params;
   const modalidade = decodeURIComponent(params.modalidade);
   const sb = supabaseAdmin();
-  
+
   const { data: camp } = await sb.from("campeonatos").select("id, nome").eq("status", "ativo").single();
   if (!camp) return <div>Nenhum campeonato ativo</div>;
 
   const { data: grupos } = await sb.from("grupos").select("*").eq("campeonato_id", camp.id).eq("modalidade", modalidade).order("nome");
   const { data: classificacoes } = await sb.from("classificacao").select("*, time:times(*)").eq("campeonato_id", camp.id);
-  const { data: jogos } = await sb.from("games").select("*, time_a:times!games_time_a_id_fkey(*), time_b:times!games_time_b_id_fkey(*)").eq("campeonato_id", camp.id).eq("modalidade", modalidade).eq("fase", "Fase de Grupos").order("ordem_na_fase");
+  const { data: jogos } = await sb.from("games")
+    .select("*, time_a:times!games_time_a_id_fkey(*), time_b:times!games_time_b_id_fkey(*)")
+    .eq("campeonato_id", camp.id)
+    .eq("modalidade", modalidade)
+    .eq("fase", "Fase de Grupos")
+    .order("data_hora", { ascending: true });
 
-  if (!grupos) return <div>Sem dados</div>;
+  if (!grupos || grupos.length === 0) return <div style={{ padding: "2rem" }}>Nenhum grupo encontrado para {modalidade}</div>;
+
+  // Group jogos by grupo
+  const jogosPorGrupo: Record<string, any[]> = {};
+  for (const g of grupos) {
+    jogosPorGrupo[g.id] = (jogos || []).filter((j: any) => {
+      const cA = classificacoes?.find((c: any) => c.time_id === j.time_a_id);
+      const cB = classificacoes?.find((c: any) => c.time_id === j.time_b_id);
+      return cA?.grupo_id === g.id || cB?.grupo_id === g.id;
+    }).sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase);
+  }
 
   return (
-    <div style={{ background: "#f0f0f0", minHeight: "100vh" }}>
+    <div style={{ background: "#eee", minHeight: "100vh" }}>
       <style>{`
+        @page { size: A4 portrait; margin: 10mm; }
         @media print {
-          body { background: white; padding: 0; margin: 0; }
+          html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
           .no-print { display: none !important; }
-          .print-page { width: 100% !important; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
-          .break-before { page-break-before: always; }
+          .print-wrap { background: white !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
+          .page-break { page-break-before: always !important; }
         }
-        .print-page {
-          width: 210mm;
-          min-height: 297mm;
-          margin: 20px auto;
+        .print-wrap {
+          width: 190mm;
+          margin: 15px auto;
           background: white;
-          padding: 15mm;
-          box-shadow: 0 0 10px rgba(0,0,0,0.1);
-          font-family: Arial, sans-serif;
+          padding: 10mm;
+          box-shadow: 0 0 15px rgba(0,0,0,0.15);
+          font-family: Arial, Helvetica, sans-serif;
         }
+        h1.doc-title { font-size: 16px; text-align: center; border-bottom: 2.5px solid #000; padding-bottom: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        h2.group-title { font-size: 13px; background: #222; color: white; padding: 4px 10px; margin: 10px 0 5px; border-radius: 4px; }
       `}</style>
 
-      <div className="no-print" style={{ textAlign: "center", padding: "20px", background: "white", marginBottom: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-        <h1 style={{ marginBottom: "20px" }}>Chaveamento - {modalidade}</h1>
-        <PrintButton text="🖨️ Imprimir Chaveamento (A4)" />
+      <div className="no-print" style={{ background: "white", padding: "16px 24px", display: "flex", alignItems: "center", gap: "16px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "20px" }}>
+        <h1 style={{ margin: 0, fontSize: "1.1rem" }}>📊 Chaveamento: {modalidade}</h1>
+        <PrintButton text="🖨️ Imprimir (A4)" />
       </div>
 
-      <div className="print-page">
-        <h1 style={{ textAlign: "center", marginBottom: "30px", fontSize: "24px", textTransform: "uppercase", borderBottom: "3px solid #000", paddingBottom: "10px" }}>
-          CLASSIFICAÇÃO DOS GRUPOS - {modalidade.toUpperCase()}
-        </h1>
+      {/* PAGE 1: CLASSIFICAÇÃO */}
+      <div className="print-wrap">
+        <h1 className="doc-title">Classificação dos Grupos — {modalidade}</h1>
+        {grupos.map((g: any) => (
+          <div key={g.id}>
+            <h2 className="group-title">{g.nome}</h2>
+            <TabelaClassificacao classificacoes={classificacoes?.filter((c: any) => c.grupo_id === g.id) || []} modalidade={modalidade} />
+          </div>
+        ))}
+      </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {/* PAGE 2+: JOGOS POR GRUPO */}
+      <div className="print-wrap page-break">
+        <h1 className="doc-title">Jogos da Fase de Grupos — {modalidade}</h1>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "start" }}>
           {grupos.map((g: any) => (
-            <div key={g.id} style={{ pageBreakInside: "avoid" }}>
-              <h2 style={{ fontSize: "16px", marginBottom: "5px", background: "#000", color: "#fff", padding: "4px 8px", borderRadius: "5px" }}>{g.nome}</h2>
-              <TabelaClassificacao classificacoes={classificacoes?.filter((c:any) => c.grupo_id === g.id) || []} modalidade={modalidade} />
+            <div key={g.id}>
+              <h2 className="group-title">{g.nome}</h2>
+              {jogosPorGrupo[g.id]?.map((j: any) => (
+                <JogoCard key={j.id} jogo={j} grupoNome={g.nome} />
+              ))}
             </div>
           ))}
-        </div>
-      </div>
-
-      <div className="print-page break-before">
-        <h1 style={{ textAlign: "center", marginBottom: "30px", fontSize: "24px", textTransform: "uppercase", borderBottom: "3px solid #000", paddingBottom: "10px" }}>
-          JOGOS DA FASE DE GRUPOS - {modalidade.toUpperCase()}
-        </h1>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-          {jogos?.map((j: any) => {
-            const gA = classificacoes?.find((c: any) => c.time_id === j.time_a_id);
-            const gB = classificacoes?.find((c: any) => c.time_id === j.time_b_id);
-            const nomeGrpA = grupos.find((g: any) => g.id === gA?.grupo_id)?.nome;
-            const nomeGrpB = grupos.find((g: any) => g.id === gB?.grupo_id)?.nome;
-            return <MatchCard key={j.id} jogo={j} grupoA={nomeGrpA} grupoB={nomeGrpB} />;
-          })}
         </div>
       </div>
     </div>
