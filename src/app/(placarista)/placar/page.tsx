@@ -60,7 +60,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
         <div style={{ textAlign: "center" }}>
-          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
+          <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
           <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeA}</div>
           {isFut ? (
             <input type="number" min="0" value={gA} onChange={e => setGolsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
@@ -75,7 +75,7 @@ function PlacarForm({ jogo, onSaved }: { jogo: any, onSaved: () => void }) {
         <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "1.5rem", fontWeight: "300" }}>×</div>
 
         <div style={{ textAlign: "center" }}>
-          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />}
+          <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
           <div style={{ fontWeight: "700", fontSize: "0.9375rem", marginBottom: "0.75rem" }}>{nomeB}</div>
           {isFut ? (
             <input type="number" min="0" value={gB} onChange={e => setGolsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
