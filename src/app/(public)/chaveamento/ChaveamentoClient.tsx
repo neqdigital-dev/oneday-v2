@@ -23,7 +23,7 @@ function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: s
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
   const distritoB = jogo.time_b?.distrito || null;
   const isFutebol = jogo.modalidade?.includes("Futebol");
-  const showTime = isFutebol && jogo.data_hora;
+  const showTime = !!jogo.data_hora;
 
   return (
     <div style={{ width: isMataMata ? "190px" : "100%", flexShrink: isMataMata ? 0 : 1, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>

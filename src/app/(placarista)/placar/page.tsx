@@ -5,6 +5,11 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 
+function formatHora(iso: string) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+}
+
 function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () => void, groupA?: string, groupB?: string }) {
   const isFut = jogo.modalidade?.includes("Futebol");
   const [gA, setGolsA] = useState(jogo.gols_time_a ?? 0);
@@ -54,7 +59,7 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
     <div className="card card-padded">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", fontWeight: "500" }}>
-          <b>{jogo.modalidade}</b> | #Jogo {jogo.ordem_na_fase || "?"} {groupA && `| ${groupA}`} | {jogo.fase}
+          <b>{jogo.modalidade}</b> | #Jogo {jogo.ordem_na_fase || "?"} {groupA && `| ${groupA}`} {jogo.data_hora && `| 🕐 ${formatHora(jogo.data_hora)}`} | {jogo.fase}
         </div>
         <div>
           {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📌 {jogo.local}</span>}
