@@ -214,6 +214,11 @@ export default function PlacarPage() {
             <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
               <Link href="/checkin" className="btn btn-primary btn-sm" style={{ background: "#e2e8f0", color: "#1e293b", border: "none" }}>✅ Check-in</Link>
               <Link href="/sumulas" className="btn btn-primary btn-sm">🖨️ Súmulas</Link>
+              {activeTab !== "Todos" ? (
+                <a href={`/imprimir-chaveamento/${encodeURIComponent(activeTab)}`} target="_blank" className="btn btn-primary btn-sm" style={{ background: "#6366f1", borderColor: "#6366f1", textDecoration: "none" }}>📊 Chaveamento A4</a>
+              ) : (
+                <button className="btn btn-primary btn-sm" disabled style={{ background: "#9ca3af", borderColor: "#9ca3af", cursor: "not-allowed" }}>📊 Chaveamento A4</button>
+              )}
               <button className="btn btn-ghost btn-sm" onClick={loadData}>🔑 Atualizar</button>
             </div>
           </div>
