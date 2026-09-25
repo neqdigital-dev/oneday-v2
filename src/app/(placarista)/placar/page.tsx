@@ -54,7 +54,7 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
     <div className="card card-padded">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", fontWeight: "500" }}>
-          <b>{jogo.modalidade}</b> | #Jogo {jogo.ordem_na_fase || "?"} | {jogo.fase}
+          <b>{jogo.modalidade}</b> | #Jogo {jogo.ordem_na_fase || "?"} {groupA && `| ${groupA}`} | {jogo.fase}
         </div>
         <div>
           {jogo.local && <span className="badge badge-gray" style={{ fontSize: "0.7rem" }}>📌 {jogo.local}</span>}
@@ -65,8 +65,8 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
         <div style={{ textAlign: "center" }}>
           <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
           <div style={{ fontWeight: "700", fontSize: "0.9375rem" }}>{nomeA}</div>
-          {labelA && <div style={{ fontSize: "0.7rem", color: "var(--brand-500,#3b82f6)", fontWeight: "600", marginBottom: "0.5rem" }}>{labelA}</div>}
-          {!labelA && <div style={{ marginBottom: "0.75rem" }}></div>}
+          
+          
           {isFut ? (
             <input type="number" min="0" value={gA} onChange={e => setGolsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           ) : (
@@ -80,8 +80,8 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
         <div style={{ textAlign: "center" }}>
           <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 0.5rem" }} />
           <div style={{ fontWeight: "700", fontSize: "0.9375rem" }}>{nomeB}</div>
-          {labelB && <div style={{ fontSize: "0.7rem", color: "var(--brand-500,#3b82f6)", fontWeight: "600", marginBottom: "0.5rem" }}>{labelB}</div>}
-          {!labelB && <div style={{ marginBottom: "0.75rem" }}></div>}
+          
+          
           {isFut ? (
             <input type="number" min="0" value={gB} onChange={e => setGolsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           ) : (
@@ -131,6 +131,21 @@ export default function PlacarPage() {
          setModalidadesAtivas(["Todos", ...(mods as string[])].sort());
       } else {
          setModalidadesAtivas(["Todos", "Futebol Masculino", "Tênis de Mesa", "Vôlei Feminino", "Vôlei Masculino"]);
+      }
+
+      // Fetch grupos dos times
+      if (Array.isArray(dataCamp) && dataCamp.length > 0) {
+        const activeCampId = dataCamp[0].id;
+        const { data: classifData } = await supabase.from("classificacao").select("time_id, grupos(nome)").eq("campeonato_id", activeCampId);
+        if (classifData) {
+          const tMap: Record<string, string> = {};
+          classifData.forEach((c: any) => {
+            if (c.grupos && c.grupos.nome) {
+              tMap[c.time_id] = c.grupos.nome;
+            }
+          });
+          setTeamGroups(tMap);
+        }
       }
 
     } finally {

@@ -30,6 +30,7 @@ function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: s
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
           <span style={{ fontWeight: 600, color: "var(--brand-blue,#0D2644)" }}>#Jogo {jogo.ordem_na_fase || "?"}</span>
+            {grupoA && <span style={{ fontWeight: 600, color: "var(--brand-blue,#0D2644)" }}>{grupoA}</span>}
             {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
           {jogo.local && <span>📍 {jogo.local}</span>}
           {jogo.finalizado && <span style={{ color:"#10b981", fontWeight:600 }}>✓ Finalizado</span>}
@@ -39,7 +40,7 @@ function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: s
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_a?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-              {grupoA && <span style={{ fontSize:"0.65rem", color:"var(--brand-500,#3b82f6)", fontWeight:700 }}>{grupoA}</span>}
+              
             <span style={{ fontWeight: aWins ? 700 : 500, fontSize:"0.8125rem", color: aWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeA} {aWins && "🏆"}</span>
             {distritoA && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoA}</span>}
           </div>
@@ -52,7 +53,7 @@ function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: s
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", overflow:"hidden", flex: 1 }}>
           <img src={jogo.time_b?.imagem_url || "/logo.png"} alt="" style={{ width:"22px", height:"22px", flexShrink:0, borderRadius:"50%", objectFit:"cover", border: "1px solid #e2e8f0", background: "#f8fafc" }} />
           <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-              {grupoB && <span style={{ fontSize:"0.65rem", color:"var(--brand-500,#3b82f6)", fontWeight:700 }}>{grupoB}</span>}
+              
             <span style={{ fontWeight: bWins ? 700 : 500, fontSize:"0.8125rem", color: bWins ? "var(--gold-400,#ca8a04)" : "inherit", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{nomeB} {bWins && "🏆"}</span>
             {distritoB && <span style={{ fontSize:"0.65rem", color:"var(--text-muted,#9ca3af)", textOverflow:"ellipsis", whiteSpace:"nowrap", overflow:"hidden", lineHeight: "1.2" }}>{distritoB}</span>}
           </div>
