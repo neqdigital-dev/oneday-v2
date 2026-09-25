@@ -23,9 +23,7 @@ function MatchCard({ jogo }: { jogo: any }) {
   const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "A definir";
   const distritoB = jogo.time_b?.distrito || null;
   const isFutebol = jogo.modalidade?.includes("Futebol");
-  const isVoleiMasc = jogo.modalidade?.includes("Vôlei") && jogo.modalidade?.includes("Masculino");
-  
-  const showTime = (isFutebol || isVoleiMasc) && jogo.data_hora;
+  const showTime = isFutebol && jogo.data_hora;
 
   return (
     <div style={{ width: "190px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
