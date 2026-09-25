@@ -1,6 +1,11 @@
 import React from 'react';
 import { formatDateTime } from "@/lib/utils";
 
+function formatHora(iso: string) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+}
+
 export default function SumulaVolei({ game, modalidade, nomeCampeonato }: { game: any; modalidade: string; nomeCampeonato: string }) {
   const timeA = game.time_a?.nome_base || game.time_a?.nome_igreja || "A definir";
   const timeB = game.time_b?.nome_base || game.time_b?.nome_igreja || "A definir";
@@ -11,14 +16,14 @@ export default function SumulaVolei({ game, modalidade, nomeCampeonato }: { game
         {/* Header */}
         <div className="header-box">
           <div className="header-title">
-            FICHA TÉCNICA - {modalidade.toUpperCase()} - {nomeCampeonato.toUpperCase()}
+            FICHA TÉCNICA - {modalidade.toUpperCase()} - {nomeCampeonato.toUpperCase()} - #JOGO {game.ordem_na_fase || "?"}
           </div>
           
           <div className="header-info">
             <div className="info-left">
               <div className="info-row">
                 <span className="info-label">HORÁRIO INICIO:</span>
-                <span className="info-value">{game.data_hora ? formatDateTime(game.data_hora).split(" às ")[1] : ""}</span>
+                <span className="info-value">{game.data_hora ? formatHora(game.data_hora) : ""}</span>
               </div>
               <div className="info-row">
                 <span className="info-label">HORÁRIO FINAL:</span>
