@@ -1,4 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+
+function getTempoJanela(modalidade: string, isMataMata: boolean = false): number {
+  const mod = modalidade.toLowerCase();
+  if (mod.includes("futebol")) return 30; 
+  if (isMataMata) {
+    if (mod.includes("vôlei")) return 30; 
+    if (mod.includes("tênis")) return 20;
+  }
+  if (mod.includes("vôlei") && mod.includes("feminino")) return 15; 
+  if (mod.includes("vôlei") && mod.includes("masculino")) return 18; 
+  if (mod.includes("tênis")) return 15; 
+  return 30;
+}
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logAction } from "@/lib/audit";
@@ -50,14 +63,15 @@ export async function POST(req: NextRequest) {
   baseDate.setUTCHours(hh + 3, mm, 0, 0);
 
   // Distribuir nos novos slots
-  const duracaoMinutos = modalidade.toLowerCase().includes("futebol") ? 30 : 45;
-  const REST_MINUTES = 15;
+  const REST_MINUTES = 0;
   const temposQuadras = Array(numQuadras).fill(baseDate.getTime());
   const teamFreeTime: Record<string, number> = {};
 
   let reagendados = 0;
 
   for (const jogo of jogosParaReagendar) {
+    const isMataMata = ["Quartas de Final", "Semifinal", "Final"].includes(jogo.fase);
+    const duracaoMinutos = getTempoJanela(modalidade, isMataMata);
     // Calcular quando os dois times estão livres
     const taFree = teamFreeTime[jogo.time_a_id] || baseDate.getTime();
     const tbFree = teamFreeTime[jogo.time_b_id] || baseDate.getTime();

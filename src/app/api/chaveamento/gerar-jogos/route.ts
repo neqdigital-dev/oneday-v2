@@ -1,4 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+
+function getTempoJanela(modalidade: string): number {
+  const mod = modalidade.toLowerCase();
+  if (mod.includes("futebol")) return 30; 
+  if (mod.includes("vôlei") && mod.includes("feminino")) return 15; 
+  if (mod.includes("vôlei") && mod.includes("masculino")) return 18; 
+  if (mod.includes("tênis")) return 15; 
+  return 30;
+}
 import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logAction } from "@/lib/audit";
@@ -121,7 +130,7 @@ export async function POST(req: NextRequest) {
   const temposQuadras = Array(numQuadras).fill(baseDate.getTime());
   const teamFreeTime: Record<string, number> = {};
   const REST_MINUTES = 0; 
-  const MATCH_DURATION = tempo_jogo ? parseInt(tempo_jogo) : (modalidade.toLowerCase().includes("futebol") ? 30 : 45);
+  const MATCH_DURATION = tempo_jogo ? parseInt(tempo_jogo) : getTempoJanela(modalidade);
 
   let totalSalvos = 0;
 
