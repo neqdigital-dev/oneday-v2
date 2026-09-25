@@ -108,11 +108,12 @@ export async function POST(req: NextRequest) {
 
   const temposQuadras = Array(numQuadras).fill(baseDate.getTime());
   const teamFreeTime: Record<string, number> = {};
-  const REST_MINUTES = 15; 
+  const REST_MINUTES = 0; 
   const MATCH_DURATION = tempo_jogo ? parseInt(tempo_jogo) : (modalidade.toLowerCase().includes("futebol") ? 30 : 45);
 
   let totalSalvos = 0;
 
+    const gamesToInsert = [];
   for (let i = 0; i < scheduledMatches.length; i++) {
     const m = scheduledMatches[i];
 
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
     const dataHora = new Date(earliestStartTime);
     const endTime = earliestStartTime + MATCH_DURATION * 60000;
 
-    await sb.from("games").insert({
+    gamesToInsert.push({
       campeonato_id: campId,
       modalidade,
       fase: "Fase de Grupos",
@@ -145,12 +146,17 @@ export async function POST(req: NextRequest) {
       finalizado: false,
       ordem_na_fase: i + 1
     });
-    totalSalvos++;
-
+    
     temposQuadras[bestQuadraIdx] = endTime;
     const restTime = earliestStartTime + (MATCH_DURATION + REST_MINUTES) * 60000;
     teamFreeTime[m.ta] = restTime;
     teamFreeTime[m.tb] = restTime;
+  }
+  
+  if (gamesToInsert.length > 0) {
+    const { error } = await sb.from("games").insert(gamesToInsert);
+    if (error) console.error('Insert error:', error);
+    totalSalvos = gamesToInsert.length;
   }
 
   await logAction((session.user as any).id, "GERAR_JOGOS", { modalidade, jogos: totalSalvos });
