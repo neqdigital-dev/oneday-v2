@@ -15,7 +15,7 @@ function getModalidadeIcon(mod: string) {
   return "🏅";
 }
 
-function MatchCard({ jogo, grupoA, grupoB }: { jogo: any, grupoA?: string, grupoB?: string }) {
+function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: string, grupoB?: string, isMataMata?: boolean }) {
   const aWins = jogo.finalizado && jogo.vencedor_id === jogo.time_a_id;
   const bWins = jogo.finalizado && jogo.vencedor_id === jogo.time_b_id;
   const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "A definir";
@@ -26,10 +26,11 @@ function MatchCard({ jogo, grupoA, grupoB }: { jogo: any, grupoA?: string, grupo
   const showTime = isFutebol && jogo.data_hora;
 
   return (
-    <div style={{ width: "190px", flexShrink: 0, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
+    <div style={{ width: isMataMata ? "190px" : "100%", flexShrink: isMataMata ? 0 : 1, background:"var(--glass-bg,#fff)", border:"1px solid var(--glass-border,#e5e7eb)", borderRadius:"0.75rem", overflow:"hidden" }}>
       {(showTime || jogo.local || jogo.finalizado) && (
         <div style={{ padding:"0.25rem 0.75rem", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--glass-border,#e5e7eb)", fontSize:"0.7rem", color:"var(--text-muted,#9ca3af)", display:"flex", gap:"0.75rem" }}>
-          {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
+          <span style={{ fontWeight: 600, color: "var(--brand-blue,#0D2644)" }}>#Jogo {jogo.ordem_na_fase || "?"}</span>
+            {showTime && <span>🕐 {formatHora(jogo.data_hora)}</span>}
           {jogo.local && <span>📍 {jogo.local}</span>}
           {jogo.finalizado && <span style={{ color:"#10b981", fontWeight:600 }}>✓ Finalizado</span>}
         </div>
@@ -381,7 +382,7 @@ export default function ChaveamentoClient({ campNome, modalidades, jogos, grupos
                   </div>
                   {jogosF.map((jogo: any) => (
                     <div key={jogo.id} style={{ position:"relative" }}>
-                      <MatchCard jogo={jogo} />
+                      <MatchCard jogo={jogo} isMataMata={true} />
                     </div>
                   ))}
                 </div>

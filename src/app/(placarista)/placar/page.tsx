@@ -72,9 +72,7 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
           ) : (
             <input type="number" min="0" max="3" value={sA} onChange={e => setSetsA(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           )}
-          <button className="btn btn-outline btn-sm" style={{ marginTop: "0.5rem", width: "100%", fontSize: "0.7rem" }} onClick={() => handleSave(true, jogo.time_b_id)} disabled={loading}>
-            W.O. (Não Veio)
-          </button>
+          
         </div>
 
         <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "1.5rem", fontWeight: "300" }}>×</div>
@@ -89,9 +87,7 @@ function PlacarForm({ jogo, onSaved, groupA, groupB }: { jogo: any, onSaved: () 
           ) : (
             <input type="number" min="0" max="3" value={sB} onChange={e => setSetsB(parseInt(e.target.value) || 0)} className="input" style={{ textAlign: "center", fontSize: "1.5rem", fontWeight: "800", padding: "0.5rem" }} />
           )}
-          <button className="btn btn-outline btn-sm" style={{ marginTop: "0.5rem", width: "100%", fontSize: "0.7rem" }} onClick={() => handleSave(true, jogo.time_a_id)} disabled={loading}>
-            W.O. (Não Veio)
-          </button>
+          
         </div>
       </div>
 
