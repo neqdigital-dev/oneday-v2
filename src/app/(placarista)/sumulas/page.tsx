@@ -32,6 +32,16 @@ export default async function SumulasPage() {
     fases: Array.from(modalitiesMap[mod])
   }));
 
+  const modOrder = ["Futebol Masculino", "Tênis de Mesa", "Vôlei Feminino", "Vôlei Masculino"];
+  data.sort((a, b) => {
+    const idxA = modOrder.indexOf(a.modalidade);
+    const idxB = modOrder.indexOf(b.modalidade);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.modalidade.localeCompare(b.modalidade);
+  });
+
   // Sort phases to ensure "Fase de Grupos" is first, then "Quartas de Final", etc.
   const phaseOrder = ["Fase de Grupos", "Oitavas de Final", "Quartas de Final", "Semifinal", "Final", "Disputa 3º Lugar"];
   data.forEach(d => {

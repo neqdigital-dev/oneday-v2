@@ -25,6 +25,15 @@ async function getData() {
   ]);
 
   const modalidades = [...new Set((grupos || []).map((g: any) => g.modalidade))];
+  const modOrder = ["Futebol Masculino", "Tênis de Mesa", "Vôlei Feminino", "Vôlei Masculino"];
+  modalidades.sort((a, b) => {
+    const idxA = modOrder.indexOf(a as string);
+    const idxB = modOrder.indexOf(b as string);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return (a as string).localeCompare(b as string);
+  });
 
   return { camp, jogos: jogos || [], grupos: grupos || [], classificacoes: classificacoes || [], modalidades };
 }
