@@ -133,7 +133,9 @@ export default function SumulaFutebol({ game, modalidade, nomeCampeonato, jogado
       <style>{`
         .sumula-page {
           width: 100%;
-          height: 100vh;
+          max-width: 800px;
+          margin: 0 auto;
+          height: 1060px; /* Fixed height instead of 100vh to avoid notebook overflow */
           padding: 20px;
           background: white;
           color: black;
