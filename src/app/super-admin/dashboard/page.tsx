@@ -169,6 +169,31 @@ export default function SuperAdminDashboard() {
     setLoading(false);
   }
 
+
+  async function handleZerarPlacares() {
+    const pwd = window.prompt("Digite a senha de segurança para ZERAR OS PLACARES (os jogos e horários serão mantidos):");
+    if (pwd !== "740689") {
+      toast.error("Senha incorreta. Ação cancelada.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chaveamento/zerar-placares", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modalidade })
+      });
+      if (res.ok) {
+        toast.success("Placares zerados! Os jogos da fase de grupos foram mantidos intactos.");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Erro ao zerar");
+      }
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
   async function handleClearJogos() {
     const pwd = window.prompt("Digite a senha de segurança para zerar APENAS A TABELA DE JOGOS:");
     if (pwd !== "740689") {
