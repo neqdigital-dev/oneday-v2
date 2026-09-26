@@ -188,16 +188,14 @@ export default async function ImprimirChaveamento(props: { params: Promise<{ mod
         </div>
       </div>
 
-      <div className="print-wrap">
+      <div className="print-wrap" style={{ marginTop: "20px" }}>
         <h2 className="section-title">⚔️ Jogos da Fase de Grupos - {modalidade}</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", alignItems: "start" }}>
-          {grupos.map((g: any) => (
-            <div key={g.id} style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-              {jogosPorGrupo[g.id]?.map((j: any) => (
-                <MatchCard key={j.id} jogo={j} grupoA={g.nome} />
-              ))}
-            </div>
-          ))}
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: "1rem", alignItems: "start" }}>
+          {jogosSequential.map((j: any) => {
+            const gA = classificacoes?.find((c: any) => c.time_id === j.time_a_id);
+            const nomeGrpA = grupos.find((g: any) => g.id === gA?.grupo_id)?.nome;
+            return <MatchCard key={j.id} jogo={j} grupoA={nomeGrpA} />;
+          })}
         </div>
       </div>
     </div>
