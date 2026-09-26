@@ -139,15 +139,9 @@ export default async function ImprimirChaveamento(props: { params: Promise<{ mod
 
   if (!grupos || grupos.length === 0) return <div style={{ padding: "2rem" }}>Nenhum grupo encontrado para {modalidade}</div>;
 
-  // Group jogos by grupo
-  const jogosPorGrupo: Record<string, any[]> = {};
-  for (const g of grupos) {
-    jogosPorGrupo[g.id] = (jogos || []).filter((j: any) => {
-      const cA = classificacoes?.find((c: any) => c.time_id === j.time_a_id);
-      const cB = classificacoes?.find((c: any) => c.time_id === j.time_b_id);
-      return cA?.grupo_id === g.id || cB?.grupo_id === g.id;
-    }).sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase);
-  }
+  const jogosSequential = (jogos || []).sort((a: any, b: any) => a.ordem_na_fase - b.ordem_na_fase);
+  const isFutebol = modalidade.includes("Futebol");
+  const cols = isFutebol ? 3 : 2;
 
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
@@ -194,7 +188,7 @@ export default async function ImprimirChaveamento(props: { params: Promise<{ mod
         </div>
       </div>
 
-      <div className="print-wrap page-break">
+      <div className="print-wrap">
         <h2 className="section-title">⚔️ Jogos da Fase de Grupos - {modalidade}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", alignItems: "start" }}>
           {grupos.map((g: any) => (
