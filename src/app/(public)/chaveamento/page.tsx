@@ -4,9 +4,13 @@ import ChaveamentoClient from "./ChaveamentoClient";
 
 export const dynamic = "force-dynamic";
 
-async function getData() {
+async function getData(campeonatoId?: string) {
   const sb = supabaseAdmin();
-  const { data: camp } = await sb.from("campeonatos").select("*").eq("status", "ativo").single();
+  let campQuery = sb.from("campeonatos").select("*");
+  if (campeonatoId) campQuery = campQuery.eq("id", parseInt(campeonatoId));
+  else campQuery = campQuery.eq("status", "ativo");
+
+  const { data: camp } = await campQuery.single();
   if (!camp) return null;
 
   const [{ data: jogos }, { data: grupos }, { data: classificacoes }] = await Promise.all([
@@ -38,8 +42,10 @@ async function getData() {
   return { camp, jogos: jogos || [], grupos: grupos || [], classificacoes: classificacoes || [], modalidades };
 }
 
-export default async function ChaveamentoPage() {
-  const data = await getData();
+export default async function ChaveamentoPage(props: { searchParams?: Promise<{ campeonato_id?: string }> }) {
+  const searchParams = props.searchParams ? await props.searchParams : {};
+  const campeonato_id = searchParams.campeonato_id;
+  const data = await getData(campeonato_id);
 
   return (
     <div className="page-wrapper">

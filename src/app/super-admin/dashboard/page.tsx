@@ -434,8 +434,8 @@ export default function SuperAdminDashboard() {
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => alert("Função de visualizar relatórios de campeonatos passados em breve!")} className="btn btn-outline" style={{ width: "100%" }}>
-                    Ver Registro (Em Breve)
+                  <button onClick={() => window.open("/chaveamento?campeonato_id=" + camp.id, "_blank")} className="btn btn-outline" style={{ width: "100%" }}>
+                    Ver Chaveamento Arquivado
                   </button>
                 )}
               </div>
