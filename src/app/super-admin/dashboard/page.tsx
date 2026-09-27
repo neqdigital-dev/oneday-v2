@@ -9,6 +9,9 @@ export default function SuperAdminDashboard() {
   const [nome, setNome] = useState("");
   const [ano, setAno] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
+  const [campeonatos, setCampeonatos] = useState<any[]>([]);
+  const [selectedCamp, setSelectedCamp] = useState<any>(null);
+  const [view, setView] = useState<"home" | "painel">("home");
   
   const [modalidadesOptions, setModalidadesOptions] = useState<any[]>([]);
   const [novaModalidade, setNovaModalidade] = useState("");
@@ -27,6 +30,32 @@ export default function SuperAdminDashboard() {
   const [jogosPendentes, setJogosPendentes] = useState<any[]>([]);
   const [jogosEmAndamento, setJogosEmAndamento] = useState<Set<string>>(new Set());
   const [etapaChuva, setEtapaChuva] = useState<"config" | "selecao">("config");
+
+  async function loadCampeonatos() {
+    try {
+      const res = await fetch("/api/campeonato");
+      if (res.ok) setCampeonatos(await res.json());
+    } catch(e) {}
+  }
+
+  async function handleEncerrarCampeonato(id: string) {
+    if(!confirm("Tem certeza que deseja encerrar este campeonato? Ele sairá da visão pública e ficará arquivado.")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/campeonato/encerrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campeonato_id: id })
+      });
+      if(res.ok) {
+        toast.success("Campeonato encerrado!");
+        loadCampeonatos();
+      } else {
+        toast.error("Erro ao encerrar");
+      }
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
 
   async function loadModalidades() {
     try {
@@ -58,6 +87,7 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     loadModalidades();
+    loadCampeonatos();
   }, []);
 
   async function handleAddModalidade() {
@@ -94,6 +124,7 @@ export default function SuperAdminDashboard() {
       if (res.ok) {
         toast.success("Novo campeonato criado com sucesso!");
         setNome("");
+        loadCampeonatos();
       } else {
         const data = await res.json();
         toast.error(data.error || "Erro ao criar campeonato");
@@ -349,8 +380,76 @@ export default function SuperAdminDashboard() {
     return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
   }
 
-  return (
+    if (view === "home") {
+    return (
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div>
+            <h2 className="heading-lg">Meus Campeonatos</h2>
+            <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Gerencie os campeonatos criados.</p>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+          
+          {/* Create New Card */}
+          <div className="card card-padded" style={{ border: "2px dashed var(--brand-300)" }}>
+            <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-600)" }}>🆕 Criar Novo Campeonato</h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              Atenção: Ao criar um novo campeonato, o atual (se houver) será automaticamente arquivado.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="input-group">
+                <label className="input-label">NOME DO CAMPEONATO</label>
+                <input type="text" className="input" placeholder="Ex: One Day Vôlei 2026" value={nome} onChange={e => setNome(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <label className="input-label">ANO</label>
+                <input type="number" className="input" value={ano} onChange={e => setAno(Number(e.target.value))} />
+              </div>
+              <button onClick={handleCreateChampionship} className="btn btn-primary" disabled={loading || !nome}>
+                {loading ? "Criando..." : "✅ Criar Campeonato"}
+              </button>
+            </div>
+          </div>
+
+          {/* List existing ones */}
+          {campeonatos.map(camp => (
+            <div key={camp.id} className="card card-padded" style={{ border: camp.status === "ativo" ? "2px solid #10b981" : "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                <h3 className="heading-md">{camp.nome}</h3>
+                {camp.status === "ativo" && <span style={{ background: "#10b981", color: "#fff", padding: "0.25rem 0.5rem", borderRadius: "1rem", fontSize: "0.75rem", fontWeight: 700 }}>ATIVO</span>}
+                {camp.status === "arquivado" && <span style={{ background: "#94a3b8", color: "#fff", padding: "0.25rem 0.5rem", borderRadius: "1rem", fontSize: "0.75rem", fontWeight: 700 }}>ARQUIVADO</span>}
+              </div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>Ano: {camp.ano}</p>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {camp.status === "ativo" ? (
+                  <>
+                    <button onClick={() => { setSelectedCamp(camp); setView("painel"); }} className="btn btn-primary" style={{ width: "100%", background: "var(--brand-blue)" }}>
+                      ⚙️ Acessar Painel
+                    </button>
+                    <button onClick={() => handleEncerrarCampeonato(camp.id)} className="btn btn-outline" style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)" }} disabled={loading}>
+                      Encerrar e Tirar do Público
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => alert("Função de visualizar relatórios de campeonatos passados em breve!")} className="btn btn-outline" style={{ width: "100%" }}>
+                    Ver Registro (Em Breve)
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+        </div>
+      </div>
+    );
+  }
+
+return (
     <div>
+      <button onClick={() => setView("home")} className="btn btn-outline" style={{ marginBottom: "1rem" }}>← Voltar para Campeonatos</button>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2 className="heading-lg">Painel do Super Admin</h2>
