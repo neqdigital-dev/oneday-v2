@@ -112,6 +112,8 @@ export default function PlacarPage() {
   const [activeTab, setActiveTab] = useState("Todos");
   const [modalidadesAtivas, setModalidadesAtivas] = useState<string[]>(["Todos"]);
   const [teamGroups, setTeamGroups] = useState<Record<string, string>>({});
+  const [subTab, setSubTab] = useState<"pendentes" | "finalizados">("pendentes");
+  const [jogosFinalizados, setJogosFinalizados] = useState<any[]>([]);
 
   async function loadData() {
     setLoading(true);
@@ -123,6 +125,14 @@ export default function PlacarPage() {
         ? dataJogos.filter((j: any) => j.time_a_id && j.time_b_id).sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) 
         : [];
       setJogos(jogosValidos);
+
+      // Also fetch finalized games
+      const resFinalizados = await fetch("/api/jogos?finalizado=true");
+      const dataFinalizados = await resFinalizados.json();
+      const finalizadosValidos = Array.isArray(dataFinalizados)
+        ? dataFinalizados.filter((j: any) => j.time_a_id && j.time_b_id).sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
+        : [];
+      setJogosFinalizados(finalizadosValidos);
 
       const resMod = await fetch("/api/modalidades");
       const dataMod = await resMod.json();
@@ -236,7 +246,33 @@ export default function PlacarPage() {
             ))}
           </div>
 
-          {loading ? (
+          {/* Sub-tabs: Pendentes / Finalizados */}
+          <div style={{ display: "flex", gap: "0", marginBottom: "1.5rem" }}>
+            <button
+              onClick={() => setSubTab("pendentes")}
+              style={{
+                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "pendentes" ? 700 : 500,
+                background: subTab === "pendentes" ? "var(--primary, #2563eb)" : "#f1f5f9",
+                color: subTab === "pendentes" ? "#fff" : "var(--text-secondary, #64748b)",
+                borderRadius: "0.5rem 0 0 0.5rem", fontSize: "0.875rem", transition: "all 0.2s"
+              }}
+            >
+              📝 A preencher ({jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
+            </button>
+            <button
+              onClick={() => setSubTab("finalizados")}
+              style={{
+                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "finalizados" ? 700 : 500,
+                background: subTab === "finalizados" ? "#10b981" : "#f1f5f9",
+                color: subTab === "finalizados" ? "#fff" : "var(--text-secondary, #64748b)",
+                borderRadius: "0 0.5rem 0.5rem 0", fontSize: "0.875rem", transition: "all 0.2s"
+              }}
+            >
+              ✅ Finalizados ({jogosFinalizados.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
+            </button>
+          </div>
+
+          {subTab === "pendentes" && (loading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: "200px" }} />)}
             </div>
