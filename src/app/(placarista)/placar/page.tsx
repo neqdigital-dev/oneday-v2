@@ -246,11 +246,33 @@ export default function PlacarPage() {
             ))}
           </div>
 
+
           {/* Sub-tabs: Pendentes / Finalizados */}
           <div style={{ display: "flex", gap: "0", marginBottom: "1.5rem" }}>
             <button
               onClick={() => setSubTab("pendentes")}
               style={{
+                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "pendentes" ? 700 : 500,
+                background: subTab === "pendentes" ? "var(--primary, #2563eb)" : "#f1f5f9",
+                color: subTab === "pendentes" ? "#fff" : "var(--text-secondary, #64748b)",
+                borderRadius: "0.5rem 0 0 0.5rem", fontSize: "0.875rem", transition: "all 0.2s"
+              }}
+            >
+              📝 A preencher ({jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
+            </button>
+            <button
+              onClick={() => setSubTab("finalizados")}
+              style={{
+                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "finalizados" ? 700 : 500,
+                background: subTab === "finalizados" ? "#10b981" : "#f1f5f9",
+                color: subTab === "finalizados" ? "#fff" : "var(--text-secondary, #64748b)",
+                borderRadius: "0 0.5rem 0.5rem 0", fontSize: "0.875rem", transition: "all 0.2s"
+              }}
+            >
+              ✅ Finalizados ({jogosFinalizados.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
+            </button>
+          </div>
+
           {subTab === "pendentes" && (loading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: "200px" }} />)}
