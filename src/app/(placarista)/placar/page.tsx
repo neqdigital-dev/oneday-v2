@@ -251,27 +251,6 @@ export default function PlacarPage() {
             <button
               onClick={() => setSubTab("pendentes")}
               style={{
-                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "pendentes" ? 700 : 500,
-                background: subTab === "pendentes" ? "var(--primary, #2563eb)" : "#f1f5f9",
-                color: subTab === "pendentes" ? "#fff" : "var(--text-secondary, #64748b)",
-                borderRadius: "0.5rem 0 0 0.5rem", fontSize: "0.875rem", transition: "all 0.2s"
-              }}
-            >
-              📝 A preencher ({jogos.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
-            </button>
-            <button
-              onClick={() => setSubTab("finalizados")}
-              style={{
-                flex: 1, padding: "0.75rem", border: "none", cursor: "pointer", fontWeight: subTab === "finalizados" ? 700 : 500,
-                background: subTab === "finalizados" ? "#10b981" : "#f1f5f9",
-                color: subTab === "finalizados" ? "#fff" : "var(--text-secondary, #64748b)",
-                borderRadius: "0 0.5rem 0.5rem 0", fontSize: "0.875rem", transition: "all 0.2s"
-              }}
-            >
-              ✅ Finalizados ({jogosFinalizados.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length})
-            </button>
-          </div>
-
           {subTab === "pendentes" && (loading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: "200px" }} />)}
@@ -288,6 +267,22 @@ export default function PlacarPage() {
                 <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadData} groupA={teamGroups[jogo.time_a_id]} groupB={teamGroups[jogo.time_b_id]} />
               ))}
             </div>
+          ))}
+
+          {subTab === "finalizados" && (
+            jogosFinalizados.filter(j => activeTab === "Todos" || j.modalidade === activeTab).length === 0 ? (
+              <div className="card card-padded" style={{ textAlign: "center", padding: "3rem" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
+                <h3 className="heading-sm">Nenhum jogo finalizado ainda</h3>
+                <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Os jogos finalizados aparecerão aqui.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {jogosFinalizados.filter(j => activeTab === "Todos" || j.modalidade === activeTab).map(jogo => (
+                  <PlacarForm key={jogo.id} jogo={jogo} onSaved={loadData} groupA={teamGroups[jogo.time_a_id]} groupB={teamGroups[jogo.time_b_id]} />
+                ))}
+              </div>
+            )
           )}
         </div>
       </main>
