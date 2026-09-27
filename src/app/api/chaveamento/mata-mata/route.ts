@@ -48,8 +48,8 @@ export async function POST(req: NextRequest) {
   for (const grupo of grupos) {
     const classifGrupo = classifRaw?.filter(c => c.grupo_id === grupo.id) || [];
     const rankingGrupo = classifGrupo.sort((a, b) => {
-      const ptsA = (a.vitorias * 3) + a.empates;
-      const ptsB = (b.vitorias * 3) + b.empates;
+      const ptsA = modalidade.includes("Futebol") ? (a.vitorias * 3) + a.empates : a.vitorias;
+      const ptsB = modalidade.includes("Futebol") ? (b.vitorias * 3) + b.empates : b.vitorias;
       if (ptsB !== ptsA) return ptsB - ptsA;
       if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       // Simplificado: ignorando a normalização complexa por enquanto
       // Idealmente, se um grupo tiver 5 times, precisaríamos descontar os pontos contra o último.
       // O V1 fazia isso, mas para manter robusto aqui vamos ordenar direto.
-      const ptsA = (a.vitorias * 3) + a.empates;
-      const ptsB = (b.vitorias * 3) + b.empates;
+      const ptsA = modalidade.includes("Futebol") ? (a.vitorias * 3) + a.empates : a.vitorias;
+      const ptsB = modalidade.includes("Futebol") ? (b.vitorias * 3) + b.empates : b.vitorias;
       if (ptsB !== ptsA) return ptsB - ptsA;
       if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
       const sgA = a.gols_pro - a.gols_contra;
@@ -84,8 +84,8 @@ export async function POST(req: NextRequest) {
 
   // Ranking geral dos classificados
   const rankingGeral = classificados.sort((a, b) => {
-    const ptsA = (a.vitorias * 3) + a.empates;
-    const ptsB = (b.vitorias * 3) + b.empates;
+    const ptsA = modalidade.includes("Futebol") ? (a.vitorias * 3) + a.empates : a.vitorias;
+    const ptsB = modalidade.includes("Futebol") ? (b.vitorias * 3) + b.empates : b.vitorias;
     if (ptsB !== ptsA) return ptsB - ptsA;
     if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
     const sgA = a.gols_pro - a.gols_contra;
@@ -111,11 +111,39 @@ export async function POST(req: NextRequest) {
 
     let qMatches = [];
     if (grupos.length === 4 && classificados.length === 8) {
+      // 4 Grupos: Cruzamento clássico (1ºA x 2ºB, 1ºB x 2ºA, 1ºC x 2ºD, 1ºD x 2ºC)
+      // classificados = [1A, 2A, 1B, 2B, 1C, 2C, 1D, 2D]
       qMatches = [
         { tA: classificados[0].time_id, tB: classificados[3].time_id, next: semi1?.id },
         { tA: classificados[2].time_id, tB: classificados[1].time_id, next: semi2?.id },
         { tA: classificados[4].time_id, tB: classificados[7].time_id, next: semi1?.id },
         { tA: classificados[6].time_id, tB: classificados[5].time_id, next: semi2?.id },
+      ];
+    } else if (grupos.length === 3 && classificados.length === 8) {
+      // 3 Grupos: 1ºA, 2ºA, 1ºB, 2ºB, 1ºC, 2ºC + 2 melhores 3ºs
+      // Vamos usar uma tabela de cruzamento padrão que evita confrontos do mesmo grupo na QF o máximo possível
+      const firstA = classificados[0];
+      const secondA = classificados[1];
+      const firstB = classificados[2];
+      const secondB = classificados[3];
+      const firstC = classificados[4];
+      const secondC = classificados[5];
+      let third1 = classificados[6];
+      let third2 = classificados[7];
+
+      // Tenta não colocar o 3º contra o 1º do próprio grupo
+      if (third1.grupo_id === firstA.grupo_id || third2.grupo_id === firstB.grupo_id) {
+         // inverte os terceiros
+         const temp = third1;
+         third1 = third2;
+         third2 = temp;
+      }
+
+      qMatches = [
+        { tA: firstA.time_id, tB: third1.time_id, next: semi1?.id },
+        { tA: firstB.time_id, tB: third2.time_id, next: semi2?.id },
+        { tA: firstC.time_id, tB: secondA.time_id, next: semi1?.id },
+        { tA: secondB.time_id, tB: secondC.time_id, next: semi2?.id },
       ];
     } else {
       qMatches = [

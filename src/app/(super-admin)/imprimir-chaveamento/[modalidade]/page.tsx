@@ -49,9 +49,9 @@ function MatchCard({ jogo, grupoA, grupoB }: { jogo: any, grupoA?: string, grupo
 }
 
 function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: any[], modalidade: string }) {
-  const isTenis = modalidade.includes("Tênis");
+  const isFutsal = modalidade.includes("Futebol") || modalidade.includes("Futsal");
   const sorted = [...classificacoes].sort((a, b) => {
-    if (isTenis) {
+    if (!isFutsal) {
       if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
@@ -80,12 +80,12 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
             <th style={{...thStyle, textAlign:"left", width: "45%"}}>Time</th>
             <th style={thStyle}>J</th>
             <th style={thStyle}>V</th>
-            {!isTenis && <th style={thStyle}>E</th>}
+            {isFutsal && <th style={thStyle}>E</th>}
             <th style={thStyle}>D</th>
-            <th style={thStyle}>{isTenis ? "PM" : "GP"}</th>
-            <th style={thStyle}>{isTenis ? "PS" : "GC"}</th>
-            <th style={thStyle}>{isTenis ? "SP" : "SG"}</th>
-            <th style={{...thStyle, color:"#ca8a04"}}>{isTenis ? "Pts" : "Pts"}</th>
+            <th style={thStyle}>{!isFutsal ? "PM" : "GP"}</th>
+            <th style={thStyle}>{!isFutsal ? "PS" : "GC"}</th>
+            <th style={thStyle}>{!isFutsal ? "SP" : "SG"}</th>
+            <th style={{...thStyle, color:"#ca8a04"}}>{!isFutsal ? "Pts" : "Pts"}</th>
           </tr>
         </thead>
         <tbody>
@@ -105,7 +105,7 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
                 {/* Empty cells for printing */}
                 <td style={tdStyle}></td>
                 <td style={tdStyle}></td>
-                {!isTenis && <td style={tdStyle}></td>}
+                {isFutsal && <td style={tdStyle}></td>}
                 <td style={tdStyle}></td>
                 <td style={tdStyle}></td>
                 <td style={tdStyle}></td>

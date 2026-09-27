@@ -67,9 +67,9 @@ function MatchCard({ jogo, grupoA, grupoB, isMataMata }: { jogo: any, grupoA?: s
 }
 
 function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: any[], modalidade: string }) {
-  const isTenis = modalidade.includes("Tênis");
+  const isFutsal = modalidade.includes("Futebol") || modalidade.includes("Futsal");
   const sorted = [...classificacoes].sort((a, b) => {
-    if (isTenis) {
+    if (!isFutsal) {
       if (b.vitorias !== a.vitorias) return (b.vitorias || 0) - (a.vitorias || 0);
       const sgA = a.gols_pro - a.gols_contra;
       const sgB = b.gols_pro - b.gols_contra;
@@ -96,12 +96,12 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
             <th style={{...thStyle, textAlign:"left"}}>Time</th>
             <th style={thStyle}>J</th>
             <th style={thStyle}>V</th>
-            {!isTenis && <th style={thStyle}>E</th>}
+            {isFutsal && <th style={thStyle}>E</th>}
             <th style={thStyle}>D</th>
-            <th style={thStyle}>{isTenis ? "PM" : "GP"}</th>
-            <th style={thStyle}>{isTenis ? "PS" : "GC"}</th>
-            <th style={thStyle}>{isTenis ? "SP" : "SG"}</th>
-            <th style={{...thStyle, color:"var(--gold-400,#ca8a04)"}}>{isTenis ? "Pts" : "Pts"}</th>
+            <th style={thStyle}>{!isFutsal ? "PM" : "GP"}</th>
+            <th style={thStyle}>{!isFutsal ? "PS" : "GC"}</th>
+            <th style={thStyle}>{!isFutsal ? "SP" : "SG"}</th>
+            <th style={{...thStyle, color:"var(--gold-400,#ca8a04)"}}>{!isFutsal ? "Pts" : "Pts"}</th>
           </tr>
         </thead>
         <tbody>
@@ -126,12 +126,12 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
                 </td>
                 <td style={tdStyle}>{c.jogos_disputados}</td>
                 <td style={{...tdStyle, color:"#10b981"}}>{c.vitorias}</td>
-                {!isTenis && <td style={tdStyle}>{c.empates}</td>}
+                {isFutsal && <td style={tdStyle}>{c.empates}</td>}
                 <td style={{...tdStyle, color:"#ef4444"}}>{c.derrotas}</td>
                 <td style={tdStyle}>{c.gols_pro}</td>
                 <td style={tdStyle}>{c.gols_contra}</td>
                 <td style={{...tdStyle, fontWeight:600}}>{saldo > 0 ? `+${saldo}` : saldo}</td>
-                <td style={{...tdStyle, fontWeight:700, color:"var(--gold-400,#ca8a04)"}}>{isTenis ? c.vitorias : pts}</td>
+                <td style={{...tdStyle, fontWeight:700, color:"var(--gold-400,#ca8a04)"}}>{!isFutsal ? c.vitorias : pts}</td>
               </tr>
             );
           })}
@@ -142,7 +142,7 @@ function TabelaClassificacao({ classificacoes, modalidade }: { classificacoes: a
 }
 
 function LegendaClassificacao({ modalidade }: { modalidade: string }) {
-  const isTenis = modalidade.includes("Tênis");
+  const isFutsal = modalidade.includes("Futebol") || modalidade.includes("Futsal");
   const isVolei = modalidade.includes("Vôlei");
   
   return (
@@ -151,10 +151,10 @@ function LegendaClassificacao({ modalidade }: { modalidade: string }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted,#64748b)" }}>
         <div><b>J</b> = Jogos</div>
         <div><b>V</b> = Vitórias</div>
-        {!isTenis && <div><b>E</b> = Empates</div>}
+        {isFutsal && <div><b>E</b> = Empates</div>}
         <div><b>D</b> = Derrotas</div>
         
-        {isTenis ? (
+        {!isFutsal ? (
           <>
             <div><b>PM</b> = Pontos Marcados</div>
             <div><b>PS</b> = Pontos Sofridos</div>
