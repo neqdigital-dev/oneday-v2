@@ -33,3 +33,14 @@ export async function POST(req: NextRequest) {
   await logAction((session.user as any).id, "CRIAR_MODALIDADE", { nome });
   return NextResponse.json(data);
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user || (session.user as any).role !== "super_admin") return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "ID não informado" }, { status: 400 });
+  const { error } = await supabaseAdmin().from("modalidades").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}

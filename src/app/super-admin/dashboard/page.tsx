@@ -12,6 +12,7 @@ export default function SuperAdminDashboard() {
   const [campeonatos, setCampeonatos] = useState<any[]>([]);
   const [selectedCamp, setSelectedCamp] = useState<any>(null);
   const [view, setView] = useState<"home" | "painel">("home");
+  const [configMod, setConfigMod] = useState<string | null>(null);
   
   const [modalidadesOptions, setModalidadesOptions] = useState<any[]>([]);
   const [novaModalidade, setNovaModalidade] = useState("");
@@ -108,6 +109,21 @@ export default function SuperAdminDashboard() {
     loadModalidades();
     loadCampeonatos();
   }, []);
+
+  async function handleDeleteModalidade(id: string) {
+    if (!confirm("Tem certeza que deseja apagar esta modalidade?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/modalidades?id=" + id, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Modalidade removida!");
+        loadModalidades();
+      } else {
+        toast.error("Erro ao remover");
+      }
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
 
   async function handleAddModalidade() {
     if (!novaModalidade) return;
@@ -476,8 +492,8 @@ return (
       <button onClick={() => setView("home")} className="btn btn-outline" style={{ marginBottom: "1rem" }}>← Voltar para Campeonatos</button>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2 className="heading-lg">Acesso Gerencial</h2>
-          <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o campeonato.</p>
+          <h2 className="heading-lg">Painel do Campeonato</h2>
+          <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o evento.</p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Link href="/placar" className="btn btn-primary" style={{ whiteSpace: "nowrap", background: "#f59e0b", borderColor: "#f59e0b", color: "#fff" }}>🎯 Placar</Link>
@@ -488,237 +504,200 @@ return (
         </div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1.5rem" }}>
-        
-        {/* Card 0: Modalidades */}
-        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>
-          <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#10b981" }}>➕ Gerenciar Modalidades</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
-            Adicione esportes dinamicamente. Eles aparecerão em todas as telas (para Líderes, Placaristas e Simulação).
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div className="input-group">
-              <label className="input-label">NOME DA MODALIDADE</label>
-              <input type="text" className="input" placeholder="Ex: Vôlei de Dupla Feminino" value={novaModalidade} onChange={e => setNovaModalidade(e.target.value)} />
-            </div>
-            <button onClick={handleAddModalidade} className="btn" style={{ width: "100%", backgroundColor: "#10b981", color: "#fff" }} disabled={loading || !novaModalidade}>
-              {loading ? "Adicionando..." : "✅ Adicionar Modalidade"}
-            </button>
-          </div>
-        </div>
-
-        {/* Card 1: Chaveamento */}
-        <div className="card card-padded" style={{ display: "flex", flexDirection: "column" }}>
-          <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-blue, #0D2644)" }}>⚽ Controle de Chaveamento</h3>
+      {!configMod ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
           
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div className="input-group">
-              <label className="input-label">MODALIDADE GERAL</label>
-              <select className="input" value={modalidade} onChange={e => setModalidade(e.target.value)}>
-                {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
-                {modalidadesOptions.map(m => (
-                  <option key={m.id} value={m.nome}>{m.nome}</option>
-                ))}
-              </select>
+          {/* Card 0: Modalidades */}
+          <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>
+            <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#10b981" }}>➕ Modalidades do Evento</h3>
+            
+            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+              <input type="text" className="input" placeholder="Nova (ex: Ping Pong)" value={novaModalidade} onChange={e => setNovaModalidade(e.target.value)} style={{ flex: 1 }} />
+              <button onClick={handleAddModalidade} className="btn" style={{ backgroundColor: "#10b981", color: "#fff" }} disabled={loading || !novaModalidade}>
+                Add
+              </button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: (modalidade.toLowerCase().includes("futebol") || modalidade.toLowerCase().includes("futsal")) ? "1fr 1fr 1fr" : "1fr 1fr", gap: "1rem" }}>
-              <div className="input-group">
-                <label className="input-label">Nº DE QUADRAS</label>
-                <input type="number" className="input" min={1} max={10} value={numQuadras} onChange={e => setNumQuadras(Number(e.target.value))} />
-              </div>
-              <div className="input-group">
-                <label className="input-label">HORÁRIO DO 1º JOGO</label>
-                <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
-              </div>
-              {(modalidade.toLowerCase().includes("futebol") || modalidade.toLowerCase().includes("futsal")) && (
-                <div className="input-group">
-                  <label className="input-label">TEMPO DE JOGO</label>
-                  <input type="number" className="input" min={5} max={120} value={tempoJogo} onChange={e => setTempoJogo(Number(e.target.value))} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {modalidadesOptions.length === 0 && <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Nenhuma modalidade cadastrada.</p>}
+              {modalidadesOptions.map(m => (
+                <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem", background: "var(--glass-bg)", borderRadius: "0.5rem", border: "1px solid var(--glass-border)" }}>
+                  <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{m.nome}</span>
+                  <button onClick={() => handleDeleteModalidade(m.id)} style={{ background: "none", border: "none", color: "var(--red-500)", cursor: "pointer", fontSize: "1.2rem" }}>×</button>
                 </div>
-              )}
+              ))}
             </div>
-
-            <div style={{ padding: "1rem", background: "var(--glass-bg, #f8fafc)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid var(--glass-border, #e2e8f0)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)" }}>PASSO 1: DEFINIR GRUPOS</span>
-              <button onClick={handleGenerateBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%" }}>
-                {loading ? "Sorteando..." : "🎲 Sortear Grupos Aleatórios"}
-              </button>
-              <Link href="/super-admin/chaveamento-manual" className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center", textDecoration: "none" }}>
-                ⚙️ Ou Configurar Grupos Manualmente
-              </Link>
-            </div>
-
-            <div style={{ padding: "1rem", background: "rgba(16, 185, 129, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>PASSO 2: GERAR JOGOS</span>
-              <button onClick={handleGerarJogos} className="btn btn-primary" disabled={loading || !modalidade} style={{ width: "100%", backgroundColor: "#10b981", borderColor: "#10b981" }}>
-                {loading ? "Gerando..." : "⚽ Gerar Tabela de Jogos"}
-              </button>
-              <button onClick={handleClearJogos} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)", marginTop: "0.5rem" }}>
-                🧹 Zerar Tabela de Jogos (Manter Grupos)
-              </button>
-            </div>
-
-
-            <div style={{ padding: "1rem", background: "rgba(245, 158, 11, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#f59e0b" }}>PASSO 3: GERAR MATA-MATA</span>
-              <button onClick={handleGerarMataMata} className="btn" disabled={loading || !modalidade} style={{ width: "100%", backgroundColor: "#f59e0b", color: "#fff", borderColor: "#f59e0b" }}>
-                {loading ? "Gerando..." : "🏆 Gerar Fase Eliminatória"}
-              </button>
-            </div>
-
-            <div style={{ padding: "1rem", background: "rgba(139, 92, 246, 0.05)", borderRadius: "0.5rem", display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#8b5cf6" }}>PASSO 4: IMPRESSÃO</span>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <a href={`/imprimir-sumulas/${encodeURIComponent(modalidade)}`} target="_blank" className="btn btn-primary" style={{ flex: 1, backgroundColor: "#8b5cf6", borderColor: "#8b5cf6", textAlign: "center", textDecoration: "none", pointerEvents: !modalidade ? "none" : "auto", opacity: !modalidade ? 0.5 : 1, padding: "0.5rem" }}>
-                  🖨️ Súmulas
-                </a>
-                <a href={`/imprimir-chaveamento/${encodeURIComponent(modalidade)}`} target="_blank" className="btn btn-primary" style={{ flex: 1, backgroundColor: "#6366f1", borderColor: "#6366f1", textAlign: "center", textDecoration: "none", pointerEvents: !modalidade ? "none" : "auto", opacity: !modalidade ? 0.5 : 1, padding: "0.5rem" }}>
-                  📊 Chaveamento
-                </a>
-              </div>
-            </div>
-
-            <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading || !modalidade} style={{ width: "100%", borderColor: "var(--text-muted)", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-              🗑️ Apagar Tudo (Grupos e Jogos)
-            </button>
           </div>
-        </div>
 
-        {/* Card 2: Plano de Chuva (Reagendamento) - REDESENHADO */}
-        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #3b82f6" }}>
-          <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#3b82f6" }}>🌧️ Plano de Chuva (Reagendar)</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-            Mudou o número de quadras? Realoque os jogos pendentes mantendo a sequência.
-          </p>
-          
-          {etapaChuva === "config" ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div className="input-group">
-                <label className="input-label">MODALIDADE</label>
-                <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
-                  {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
-                  {modalidadesOptions.map(m => (
-                    <option key={m.id} value={m.nome}>{m.nome}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div className="input-group">
-                  <label className="input-label">NOVAS QUADRAS</label>
-                  <input type="number" className="input" min={1} max={10} value={numQuadrasReagenda} onChange={e => setNumQuadrasReagenda(Number(e.target.value))} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">RECOMEÇAR ÀS</label>
-                  <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
-                </div>
-              </div>
-
-              <button onClick={handleCarregarJogosPendentes} className="btn" style={{ width: "100%", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
-                {loading ? "Carregando..." : "🔍 Ver Jogos Pendentes"}
-              </button>
-            </div>
-          ) : (
+          {/* Card 1: Botões de Chaveamento */}
+          <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid var(--brand-blue)" }}>
+            <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-blue)" }}>🏆 Gerenciar Chaveamentos</h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              Selecione a modalidade que deseja configurar e gerar os jogos:
+            </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>{jogosPendentes.length} jogos pendentes</span>
-                <button onClick={() => setEtapaChuva("config")} style={{ background: "none", border: "none", color: "#3b82f6", cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem" }}>← Voltar</button>
-              </div>
-              
-              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", background: "#fef3c7", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", margin: 0 }}>
-                ⚠️ Marque os jogos que estão <b>ACONTECENDO AGORA</b>. Eles NÃO serão alterados. Todos os outros serão reagendados para {numQuadrasReagenda} quadra(s) a partir das {horaReagenda}.
-              </p>
+              {modalidadesOptions.length === 0 && <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Adicione modalidades primeiro.</p>}
+              {modalidadesOptions.map(m => (
+                <button key={m.id} onClick={() => { setModalidade(m.nome); setConfigMod(m.nome); }} className="btn btn-primary" style={{ width: "100%", justifyContent: "space-between" }}>
+                  <span>{m.nome}</span>
+                  <span>→</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.5rem", paddingRight: "0.25rem" }}>
-                {jogosPendentes.map((jogo, idx) => {
-                  const nomeA = jogo.time_a?.nome_base || jogo.time_a?.nome_igreja || "Time A";
-                  const nomeB = jogo.time_b?.nome_base || jogo.time_b?.nome_igreja || "Time B";
-                  const isEmAndamento = jogosEmAndamento.has(jogo.id);
-                  return (
-                    <div 
-                      key={jogo.id} 
-                      onClick={() => toggleEmAndamento(jogo.id)}
-                      style={{ 
-                        display: "flex", alignItems: "center", gap: "0.75rem", 
-                        padding: "0.625rem 0.75rem", borderRadius: "0.625rem", cursor: "pointer",
-                        border: isEmAndamento ? "2px solid #f59e0b" : "1px solid var(--glass-border, #e5e7eb)",
-                        background: isEmAndamento ? "rgba(245,158,11,0.08)" : "var(--glass-bg, #fff)",
-                        transition: "all 0.15s ease"
-                      }}
-                    >
-                      <div style={{ 
-                        width: "22px", height: "22px", borderRadius: "0.375rem", flexShrink: 0,
-                        border: isEmAndamento ? "2px solid #f59e0b" : "2px solid #d1d5db",
-                        background: isEmAndamento ? "#f59e0b" : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#fff", fontSize: "0.75rem", fontWeight: 700
-                      }}>
-                        {isEmAndamento && "⏳"}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "0.8125rem", fontWeight: 600, display: "flex", gap: "0.375rem", alignItems: "center" }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nomeA}</span>
-                          <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>vs</span>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nomeB}</span>
-                        </div>
-                        <div style={{ fontSize: "0.6875rem", color: "var(--text-muted)" }}>
-                          #{jogo.ordem_na_fase || idx+1} • {formatHora(jogo.data_hora)} • {jogo.local || "—"}
-                        </div>
-                      </div>
-                      {isEmAndamento && (
-                        <span style={{ fontSize: "0.65rem", background: "#f59e0b", color: "#fff", padding: "0.125rem 0.5rem", borderRadius: "1rem", fontWeight: 700, flexShrink: 0 }}>
-                          EM CAMPO
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+          {/* Card 2: Plano de Contingência */}
+          <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #3b82f6" }}>
+            <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "#3b82f6" }}>🌧️ Plano de Contingência</h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              Mudou o número de quadras? Realoque os jogos pendentes mantendo a sequência.
+            </p>
+            
+            {etapaChuva === "config" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className="input-group">
+                  <label className="input-label">MODALIDADE</label>
+                  <select className="input" value={modalidadeReagenda} onChange={e => setModalidadeReagenda(e.target.value)}>
+                    {modalidadesOptions.length === 0 && <option value="">Carregando...</option>}
+                    {modalidadesOptions.map(m => (
+                      <option key={m.id} value={m.nome}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div className="input-group">
+                    <label className="input-label">NOVAS QUADRAS</label>
+                    <input type="number" className="input" min={1} max={10} value={numQuadrasReagenda} onChange={e => setNumQuadrasReagenda(Number(e.target.value))} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">RECOMEÇAR ÀS</label>
+                    <input type="time" className="input" value={horaReagenda} onChange={e => setHoraReagenda(e.target.value)} />
+                  </div>
+                </div>
+                <button onClick={handleCarregarJogosPendentes} className="btn" style={{ width: "100%", backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading || !modalidadeReagenda}>
+                  {loading ? "Carregando..." : "🔍 Ver Jogos Pendentes"}
+                </button>
               </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>{jogosPendentes.length} jogos pendentes</span>
+                  <button onClick={() => setEtapaChuva("config")} style={{ background: "none", border: "none", color: "#3b82f6", cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem" }}>← Voltar</button>
+                </div>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", background: "#fef3c7", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", margin: 0 }}>
+                  ⚠️ Marque os jogos que estão <b>ACONTECENDO AGORA</b>. Eles NÃO serão alterados.
+                </p>
+                <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {jogosPendentes.map((jogo, idx) => {
+                    const isEmAndamento = jogosEmAndamento.has(jogo.id);
+                    return (
+                      <div key={jogo.id} onClick={() => toggleEmAndamento(jogo.id)} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.5rem", borderRadius: "0.5rem", cursor: "pointer", border: isEmAndamento ? "2px solid #f59e0b" : "1px solid var(--glass-border)", background: isEmAndamento ? "rgba(245,158,11,0.08)" : "var(--glass-bg)" }}>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: "0.8rem", fontWeight: 600 }}>
+                          Jogo #{jogo.ordem_na_fase}
+                        </div>
+                        {isEmAndamento && <span style={{ fontSize: "0.65rem", background: "#f59e0b", color: "#fff", padding: "0.125rem 0.5rem", borderRadius: "1rem" }}>EM CAMPO</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                <button onClick={handleConfirmarReagendar} className="btn" style={{ backgroundColor: "#3b82f6", color: "#fff" }} disabled={loading}>
+                  🔄 Reagendar
+                </button>
+              </div>
+            )}
+          </div>
 
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-                <button 
-                  onClick={handleConfirmarReagendar} 
-                  className="btn" 
-                  style={{ flex: 1, backgroundColor: "#3b82f6", color: "#fff" }} 
-                  disabled={loading}
-                >
-                  {loading ? "Processando..." : `🔄 Reagendar ${jogosPendentes.length - jogosEmAndamento.size} jogos`}
+          {/* Card 3: Simulação de Testes */}
+          <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px dashed var(--brand-300)" }}>
+            <h3 className="heading-md" style={{ marginBottom: "0.5rem", color: "var(--brand-600)" }}>🧪 Painel de Simulação</h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
+              Área reservada para testar geração de times fictícios e placares aleatórios.
+            </p>
+            <button onClick={() => window.open("/super-admin/simulacao", "_blank")} className="btn btn-outline" style={{ width: "100%", borderColor: "var(--brand-600)", color: "var(--brand-600)" }}>
+              Acessar Painel de Simulação ↗
+            </button>
+          </div>
+
+        </div>
+      ) : (
+        /* ----- TELA DE CONFIGURAÇÃO DA MODALIDADE ----- */
+        <div className="card card-padded" style={{ maxWidth: "800px", margin: "0 auto", border: "2px solid var(--brand-blue)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <h3 className="heading-lg" style={{ color: "var(--brand-blue)" }}>⚙️ Configurar: {configMod}</h3>
+            <button onClick={() => setConfigMod(null)} className="btn btn-outline">← Voltar</button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: (configMod.toLowerCase().includes("futebol") || configMod.toLowerCase().includes("futsal")) ? "1fr 1fr 1fr" : "1fr 1fr", gap: "1rem", marginBottom: "2rem" }}>
+            <div className="input-group">
+              <label className="input-label">Nº DE QUADRAS</label>
+              <input type="number" className="input" min={1} max={10} value={numQuadras} onChange={e => setNumQuadras(Number(e.target.value))} />
+            </div>
+            <div className="input-group">
+              <label className="input-label">HORÁRIO DO 1º JOGO</label>
+              <input type="time" className="input" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+            </div>
+            {(configMod.toLowerCase().includes("futebol") || configMod.toLowerCase().includes("futsal")) && (
+              <div className="input-group">
+                <label className="input-label">TEMPO DE JOGO</label>
+                <input type="number" className="input" min={5} max={120} value={tempoJogo} onChange={e => setTempoJogo(Number(e.target.value))} />
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            
+            <div style={{ padding: "1.5rem", background: "var(--glass-bg)", borderRadius: "0.5rem", border: "1px solid var(--glass-border)" }}>
+              <h4 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "1rem" }}>1. Fase de Grupos</h4>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button onClick={handleGenerateBracket} className="btn btn-outline" disabled={loading} style={{ flex: 1, minWidth: "200px" }}>
+                  🎲 Sorteio Aleatório
+                </button>
+                <Link href={`/super-admin/chaveamento-manual?modalidade=${encodeURIComponent(configMod)}`} className="btn btn-outline" style={{ flex: 1, minWidth: "200px", borderColor: "var(--brand-blue)", color: "var(--brand-blue)", textAlign: "center", textDecoration: "none" }}>
+                  ✏️ Editar / Configurar Manual
+                </Link>
+              </div>
+            </div>
+
+            <div style={{ padding: "1.5rem", background: "rgba(16, 185, 129, 0.05)", borderRadius: "0.5rem", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
+              <h4 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "1rem", color: "#10b981" }}>2. Tabela de Jogos (Fase 1)</h4>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button onClick={handleGerarJogos} className="btn btn-primary" disabled={loading} style={{ flex: 1, backgroundColor: "#10b981", borderColor: "#10b981", minWidth: "200px" }}>
+                  ⚽ Gerar Tabela Automática
+                </button>
+                <button onClick={handleClearJogos} className="btn btn-outline" disabled={loading} style={{ flex: 1, borderColor: "var(--red-500)", color: "var(--red-500)", minWidth: "200px" }}>
+                  🧹 Limpar Apenas Jogos
                 </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Card 3: Simulação de Testes */}
-        <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px dashed var(--brand-300)" }}>
-          <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-600)" }}>🧪 Modo Simulação</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem", flex: 1 }}>
-            Testes usando a <b>modalidade selecionada no 1º quadro</b>.
-          </p>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div className="input-group">
-              <label className="input-label">TIMES FICTÍCIOS A GERAR</label>
-              <select className="input" value={qtdTimes} onChange={e => setQtdTimes(Number(e.target.value))}>
-                <option value={8}>8 Times</option>
-                <option value={11}>11 Times (Teste Ímpar)</option>
-                <option value={12}>12 Times</option>
-                <option value={13}>13 Times (Teste Ímpar)</option>
-                <option value={16}>16 Times</option>
-                <option value={20}>20 Times</option>
-              </select>
+            <div style={{ padding: "1.5rem", background: "rgba(245, 158, 11, 0.05)", borderRadius: "0.5rem", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+              <h4 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "1rem", color: "#f59e0b" }}>3. Mata-Mata</h4>
+              <button onClick={handleGerarMataMata} className="btn" disabled={loading} style={{ width: "100%", backgroundColor: "#f59e0b", color: "#fff", borderColor: "#f59e0b" }}>
+                🏆 Gerar Eliminatórias (Quartas/Semi/Final)
+              </button>
             </div>
 
-            <button onClick={handleGerarTimes} className="btn btn-success" disabled={loading || !modalidade} style={{ width: "100%" }}>
-              1. Criar {qtdTimes} times falsos
-            </button>
-            <button onClick={handleSimularPlacares} className="btn btn-warning" disabled={loading || !modalidade} style={{ width: "100%", color: "#000" }}>
-              3. Simular Resultados
-            </button>
+            <div style={{ padding: "1.5rem", background: "rgba(139, 92, 246, 0.05)", borderRadius: "0.5rem", border: "1px solid rgba(139, 92, 246, 0.2)" }}>
+              <h4 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "1rem", color: "#8b5cf6" }}>4. Documentos</h4>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <a href={"/imprimir-sumulas/" + encodeURIComponent(configMod)} target="_blank" className="btn btn-primary" style={{ flex: 1, backgroundColor: "#8b5cf6", borderColor: "#8b5cf6", textAlign: "center", textDecoration: "none" }}>
+                  🖨️ Súmulas de Jogos
+                </a>
+                <a href={"/imprimir-chaveamento/" + encodeURIComponent(configMod)} target="_blank" className="btn btn-primary" style={{ flex: 1, backgroundColor: "#6366f1", borderColor: "#6366f1", textAlign: "center", textDecoration: "none" }}>
+                  📊 Tabela Geral
+                </a>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "2rem", paddingTop: "1rem", borderTop: "1px solid var(--glass-border)", textAlign: "center" }}>
+              <button onClick={handleClearBracket} className="btn btn-outline" disabled={loading} style={{ borderColor: "var(--red-500)", color: "var(--red-500)" }}>
+                🚨 Apagar Tudo (Grupos e Jogos)
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

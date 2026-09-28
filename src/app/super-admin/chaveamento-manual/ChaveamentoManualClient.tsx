@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function ChaveamentoManualClient() {
+  const searchParams = useSearchParams();
+  const initialMod = searchParams.get("modalidade");
   const router = useRouter();
   const [modalidades, setModalidades] = useState<any[]>([]);
   const [modalidade, setModalidade] = useState("");
@@ -18,7 +20,8 @@ export default function ChaveamentoManualClient() {
   useEffect(() => {
     fetch("/api/modalidades").then(r => r.json()).then(data => {
       setModalidades(data);
-      if (data.length > 0) setModalidade(data[0].nome);
+      if (initialMod) setModalidade(initialMod);
+      else if (data.length > 0) setModalidade(data[0].nome);
     });
   }, []);
 
