@@ -31,6 +31,25 @@ export default function SuperAdminDashboard() {
   const [jogosEmAndamento, setJogosEmAndamento] = useState<Set<string>>(new Set());
   const [etapaChuva, setEtapaChuva] = useState<"config" | "selecao">("config");
 
+    async function handleExcluirCampeonato(id: string) {
+    const text = prompt("Atenção! Isso apagará TODOS os times, grupos, jogos e histórico deste campeonato. Digite EXCLUIR para confirmar:");
+    if (text !== "EXCLUIR") {
+      toast.error("Cancelado.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/campeonato?id=" + id, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Campeonato excluído!");
+        loadCampeonatos();
+      } else {
+        toast.error("Erro ao excluir");
+      }
+    } catch(e) { toast.error("Erro interno"); }
+    setLoading(false);
+  }
+
   async function loadCampeonatos() {
     try {
       const res = await fetch("/api/campeonato");
@@ -390,7 +409,7 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
           
           {/* Create New Card */}
           <div className="card card-padded" style={{ border: "2px dashed var(--brand-300)" }}>
@@ -434,9 +453,14 @@ export default function SuperAdminDashboard() {
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => window.open("/chaveamento?campeonato_id=" + camp.id, "_blank")} className="btn btn-outline" style={{ width: "100%" }}>
-                    Ver Chaveamento Arquivado
-                  </button>
+                  <>
+                    <button onClick={() => window.open("/chaveamento?campeonato_id=" + camp.id, "_blank")} className="btn btn-primary" style={{ width: "100%", background: "#475569", borderColor: "#475569" }}>
+                      📊 Ver Histórico
+                    </button>
+                    <button onClick={() => handleExcluirCampeonato(camp.id)} className="btn btn-outline" style={{ width: "100%", borderColor: "var(--red-500)", color: "var(--red-500)", marginTop: "0.5rem" }} disabled={loading}>
+                      🗑️ Excluir Definitivamente
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -464,7 +488,7 @@ return (
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
         
         {/* Card 0: Modalidades */}
         <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>

@@ -60,6 +60,16 @@ export default async function ChaveamentoPage(props: { searchParams?: Promise<{ 
             </div>
           ) : (
             <>
+              {campeonato_id && (
+                <div style={{ marginBottom: "1rem" }}>
+                  <a href="/super-admin/dashboard" className="btn btn-outline" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", color: "var(--brand-blue)", textDecoration: "none", borderRadius: "0.5rem", fontWeight: 600 }}>
+                    ← Voltar para o Painel Admin
+                  </a>
+                  <div style={{ marginTop: "1rem", padding: "0.5rem 1rem", background: "#fef3c7", color: "#b45309", borderRadius: "0.5rem", fontWeight: 600, fontSize: "0.85rem", border: "1px solid #fde68a" }}>
+                    ⚠️ Você está visualizando o arquivo de um campeonato antigo.
+                  </div>
+                </div>
+              )}
               <div className="section-header" style={{ marginBottom: "2rem" }}>
                 <h1 className="heading-lg">
                   Chaveamento — <span className="text-gradient">{data.camp.nome}</span>
