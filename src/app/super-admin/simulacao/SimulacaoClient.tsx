@@ -64,10 +64,17 @@ export default function SimulacaoClient() {
           <label className="input-label">TIMES FICTÍCIOS A GERAR</label>
           <select className="input" value={qtdTimes} onChange={e => setQtdTimes(Number(e.target.value))}>
             <option value={8}>8 Times</option>
-            <option value={11}>11 Times (Teste Ímpar)</option>
+            <option value={9}>9 Times</option>
+            <option value={10}>10 Times</option>
+            <option value={11}>11 Times</option>
             <option value={12}>12 Times</option>
-            <option value={13}>13 Times (Teste Ímpar)</option>
+            <option value={13}>13 Times</option>
+            <option value={14}>14 Times</option>
+            <option value={15}>15 Times</option>
             <option value={16}>16 Times</option>
+            <option value={17}>17 Times</option>
+            <option value={18}>18 Times</option>
+            <option value={19}>19 Times</option>
             <option value={20}>20 Times</option>
           </select>
         </div>
@@ -76,7 +83,7 @@ export default function SimulacaoClient() {
           🧪 1. Criar {qtdTimes} times falsos
         </button>
         <button onClick={handleSimularPlacares} className="btn btn-warning" disabled={loading || !modalidade} style={{ width: "100%", padding: "1rem", color: "#000" }}>
-          🎲 2. Simular Resultados dos Jogos em Aberto
+          🎲 2. Simular Jogos Pendentes (Grupos, Quartas, Semi, Final)
         </button>
       </div>
     </div>
