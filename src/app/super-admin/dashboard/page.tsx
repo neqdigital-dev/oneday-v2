@@ -404,15 +404,15 @@ export default function SuperAdminDashboard() {
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <h2 className="heading-lg">Meus Campeonatos</h2>
+            <h2 className="heading-lg">Acesso Gerencial</h2>
             <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Gerencie os campeonatos criados.</p>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1.5rem" }}>
           
           {/* Create New Card */}
-          <div className="card card-padded" style={{ border: "2px dashed var(--brand-300)" }}>
+          <div className="card card-padded" style={{ border: "2px dashed var(--brand-300)", width: "300px", minHeight: "300px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <h3 className="heading-md" style={{ marginBottom: "1rem", color: "var(--brand-600)" }}>🆕 Criar Novo Campeonato</h3>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
               Atenção: Ao criar um novo campeonato, o atual (se houver) será automaticamente arquivado.
@@ -434,7 +434,7 @@ export default function SuperAdminDashboard() {
 
           {/* List existing ones */}
           {campeonatos.map(camp => (
-            <div key={camp.id} className="card card-padded" style={{ border: camp.status === "ativo" ? "2px solid #10b981" : "1px solid #e2e8f0" }}>
+            <div key={camp.id} className="card card-padded" style={{ border: camp.status === "ativo" ? "2px solid #10b981" : "1px solid #e2e8f0", width: "300px", minHeight: "300px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
                 <h3 className="heading-md">{camp.nome}</h3>
                 {camp.status === "ativo" && <span style={{ background: "#10b981", color: "#fff", padding: "0.25rem 0.5rem", borderRadius: "1rem", fontSize: "0.75rem", fontWeight: 700 }}>ATIVO</span>}
@@ -476,7 +476,7 @@ return (
       <button onClick={() => setView("home")} className="btn btn-outline" style={{ marginBottom: "1rem" }}>← Voltar para Campeonatos</button>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2 className="heading-lg">Painel do Super Admin</h2>
+          <h2 className="heading-lg">Acesso Gerencial</h2>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>Controle total sobre o campeonato.</p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -488,7 +488,7 @@ return (
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1.5rem" }}>
         
         {/* Card 0: Modalidades */}
         <div className="card card-padded" style={{ display: "flex", flexDirection: "column", border: "2px solid #10b981" }}>
